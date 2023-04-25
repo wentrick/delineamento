@@ -1,0 +1,100 @@
+---
+title: "Exercicio Aula 8"
+author: "Davi Wentrick Feijó"
+date: "2023-04-25"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(tidyverse,knitr,car)
+```
+
+### Exercicio 1: 
+Um agronomo esta interessado em comparar 3 cultivares de pessego quanto ao enraizamento de estacas. Para isso realizou um experimento inteiramente casualizado em um viveiro (condicoes controladas). Passado a tempo necessario apos a instalacao do experimento, o pesquisador anota a quantidade de estacas enraizadas. Os resultados do experimento estao na Tabela 1.
+
+
+```{r include=FALSE}
+tratamentos = c("a","b","c")
+obs_1 = c(2,1,7)
+obs_2 = c(2,0,9)
+obs_3 = c(1,2,8)
+obs_4 = c(1,1,10)
+obs_5 = c(0,3,11)
+
+dados = data.frame(tratamentos,obs_1,obs_2,obs_3,obs_4,obs_5) %>%
+  mutate(tratamentos = as.factor(tratamentos))
+```
+
+```{r echo=FALSE}
+kable(dados)
+```
+
+\newpage
+
+##### 1.1) Quais sao as hipoteses de interesse?
+
+$$
+H_0: \text{there's no difference between groups} \\
+$$
+$$
+H_1: \text{at least one group is different from the other groups}
+$$
+
+##### 1.2) Calcule a estatistica do Tese e o p-valor usando os resultados encontrados na aula teorica e usando o software R.
+
+```{r include=FALSE}
+dados_aov = dados %>%
+  pivot_longer(c(obs_1,obs_2,obs_3,obs_4,obs_5), values_to = "values", names_to = "var")
+```
+
+Teste de Anova
+```{r echo=FALSE}
+res_aov = aov(values ~ tratamentos, data = dados_aov)
+res_aov %>% summary()
+```
+Teste de Kruskall-Wallis
+
+```{r}
+kruskal.test(values ~ tratamentos, data = dados_aov)
+```
+
+
+##### 1.3) Os pressupostos necessarios foram atendidos?
+
+
+Vamos testar normalidade do numero de estacas por meio do teste de Shapiro-Wilk!
+
+
+```{r echo=FALSE}
+shapiro.test(dados_aov$values)
+```
+
+Caso passe no teste de normalidade! para isso o teste de bartlett é recoendado
+```{r echo=FALSE}
+bartlett.test(dados_aov$values,dados_aov$tratamentos)
+```
+
+Caso nao passe usamos o teste de Levene
+```{r echo=FALSE}
+leveneTest(dados_aov$values,dados_aov$tratamentos)
+```
+
+
+##### 1.4) Qual sua conclusao sobre os resultados encontrados?
+
+Existe uma diferenca de medias entre os grupos!
+
+
+##### 1.5) Qual a proporcao da variacao total explicada pelo modelo ajustado no item 1.2?
+
+
+
+##### 1.6) Se a hipotese nula for rejeita, quais cultivares diferem entre si? Apresente as hipoteses que serao testadas e a estatistica do teste.
+
+```{r echo=FALSE}
+TukeyHSD(res_aov)
+```
+
+PElo resultado do teste podemos perceber que existe uma diferença entre o grupo C dos demais grupos!
+

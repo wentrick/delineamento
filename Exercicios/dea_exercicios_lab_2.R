@@ -101,6 +101,7 @@ r_quadrado = ssqtrat/ssqtot
 
 
 #teste de fisher (manual)
+alfa = 0.05
 n = 5
 N = 20
 test_stat = (max(trat_medias$media) - min(trat_medias$media))/sqrt((ssqres/(a*n-a))*(1/n + 1/n))
@@ -110,9 +111,34 @@ qt((1-0.95)/2,N-1*sqrt((ssqres/(a*n-a))*(1/n + 1/n)))
 
 pt(test_stat,N-1*sqrt((ssqres/(a*n-a))*(1/n + 1/n)),lower.tail = FALSE)
 
+lsd = qt(alfa/2,N-a, lower.tail = FALSE)*sqrt((ssqres/(a*n-a))*(1/n + 1/n))
+
 #teste de tukey (manual)
 
 
 
+#contrastes
 
+c1 =  c(1,1,-1,-1)
+
+c2 =  c(1,-1,0,0)
+
+c3 =  c(0,0,1,-1)
+
+
+
+teste_stat_c1 = sum(c1*trat_medias$media)/(sum((ssqres/n)*(c1)^2))
+teste_stat_c2 = sum(c2*trat_medias$media)/(sum((ssqres/n)*(c2)^2))
+teste_stat_c3 = sum(c3*trat_medias$media)/(sum((ssqres/n)*(c3)^2))
+
+
+## erro tipo 2
+
+n = 5
+sigma = 25
+medias = c(575,600,650,675)
+media_medias = mean(medias)
+npc =  n*ssqtrat/(sigma^2)
+
+ssqtrat
 
