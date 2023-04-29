@@ -37,7 +37,7 @@ ssqres = ssqtot-ssqtrat-ssqblocos
 glb = (b-1)
 glt = (t-1)
 glr = glb*glt
-
+gltot = (b*t)-1
 #quadrados medios
 
 qmtrat = ssqtrat/glt
@@ -64,7 +64,7 @@ f_value_blocos = round(pf(f_obs_blocos,glb,glr,lower.tail = FALSE),7)
 # Tabela da ANOVA
 anova_table <- data.frame(Fonte_de_variacao = c("Produto", "Rolo de tecido", "Residuos", "Total"),
                           SS = c(ssqtrat, ssqblocos, ssqres, ssqtot),
-                          GL = c(glt, glb, glr, glt),
+                          GL = c(glt, glb, glr, gltot),
                           MQ = c(qmtrat, qmbloco, qmres, NA),
                           F = c(f_value, f_value_blocos, NA, NA),
                           stringsAsFactors = FALSE)
