@@ -56,17 +56,18 @@ f_crit_bloco = qf(alfa,glb,glr)
 
 #p-valor observado
 
-f_value = round(pf(f_obs,glt,glr,lower.tail = FALSE),7)
+f_value = round(pf(f_obs,glt,glr,lower.tail = FALSE),3)
 
 f_value_blocos = round(pf(f_obs_blocos,glb,glr,lower.tail = FALSE),7)
 
 
 # Tabela da ANOVA
 anova_table <- data.frame(Fonte_de_variacao = c("Produto", "Rolo de tecido", "Residuos", "Total"),
-                          SS = c(ssqtrat, ssqblocos, ssqres, ssqtot),
                           GL = c(glt, glb, glr, gltot),
-                          MQ = c(qmtrat, qmbloco, qmres, NA),
-                          F = c(f_value, f_value_blocos, NA, NA),
+                          SS = c(ssqtrat, ssqblocos, ssqres, ssqtot),
+                          MQ = c(round(qmtrat,2), round(qmbloco,2), round(qmres,2), ''),
+                          F = c(round(f_obs,3),round(f_obs_blocos,3),'',''),
+                          Pf = c(f_value, f_value_blocos, "", ''),
                           stringsAsFactors = FALSE)
 rownames(anova_table) <- NULL
 
@@ -82,6 +83,7 @@ bartlett.test(dados_long$values ~ dados_long$produtos)
 
 aov_res = aov(dados_long$values ~ dados_long$produtos+dados_long$blocos)
 aov_res %>% summary()
+
 
 
 
