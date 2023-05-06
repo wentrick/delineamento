@@ -1,0 +1,251 @@
+---
+title: "Exercicio Aula 11 e 12 Delineamento"
+author: "Davi Wentrick Feijó"
+date: "2023-05-06"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(tidyverse,knitr)
+```
+
+### Exercicio 1:
+
+Uma quımica deseja testar o efeito de quatro agentes na resistencia de um determinado tipo de tecido. Porque pode haver variabilidade de um rolo de tecido para outro, a quımica decide usar um delineamento de blocos casualizados. Sendo que, os rolos de tecido serao considerados como blocos. Ela seleciona cinco rolos e aplica todos os quatro produtos quımicos em ordem aleatoria para cada rolo. Na Tabela 1 estao os resultados das resistencias resultante.
+
+
+
+```{r}
+produtos = c(1,2,3,4)
+rolo_1 = c(73,73,75,73)
+rolo_2 = c(68,67,68,71)
+rolo_3 = c(74,75,78,75)
+rolo_4 = c(71,72,73,75)
+rolo_5 = c(67,70,68,69)
+
+dados = data.frame(produtos,rolo_1,rolo_2,rolo_3,rolo_4,rolo_5)
+kable(dados)
+```
+
+\newpage
+Para trabalhar com os dados precisamos formatar eles de forma que fiquem na forma long por meio da funcao pivot_longer()
+
+```{r}
+#padronizando o data frame para analise
+
+dados_long = dados %>%
+  pivot_longer(cols = c(rolo_1,rolo_2,rolo_3,rolo_4,rolo_5), values_to = "values", names_to = "blocos") %>%
+  mutate(produtos = as.factor(produtos)) 
+
+kable(dados_long)
+```
+
+#### 1.1) O modelo considerado e as hipoteses de interesse
+
+
+
+\newpage
+#### 1.2) A tabela de análise de variancia e suas conclusoes
+
+Para realizar a tabela da ANOVA é necessario calcular a soma de quadrados, graus de liberdade, quadrados medios para o tratamento, bloco e residuo. Alem do valor F e p-valor do teste anova e do teste para blocos.
+
+A soma de quadrados do modelo que iremos utilizar (com blocos) pode ser escrito como:
+
+$$
+\text{SQTotal} = \text{SQTratamento} + \text{SQBloco} + \text{SQResiduo}
+$$
+
+$$
+\sum_{i = 1}^{a}\sum_{j = 1}^{b}(Y_{ij} - \bar{Y_{..}})^2 = b\sum_{i = 1}^{a}(Y_{i.} - \bar{Y_{..}})^2 + a\sum_{j = 1}^{b}(Y_{.j} - \bar{Y_{..}})^2 + \sum_{i = 1}^{a}\sum_{j = 1}^{b}(Y_{ij} - Y_{.j} - Y_{i.} - \bar{Y_{..}})^2
+$$
+$$
+\text{SQTotal} = \sum_{i = 1}^{a}\sum_{j = 1}^{b}(Y_{ij} - \bar{Y_{..}})^2 
+$$
+
+$$
+\text{SQTratamento} = b\sum_{i = 1}^{a}(Y_{i.} - \bar{Y_{..}})^2 
+$$
+
+$$
+\text{SQBloco} = a\sum_{j = 1}^{b}(Y_{.j} - \bar{Y_{..}})^2 
+$$
+$$
+\text{SQResiduo} = \sum_{i = 1}^{a}\sum_{j = 1}^{b}(Y_{ij} - Y_{.j} - Y_{i.} - \bar{Y_{..}})^2
+$$
+
+Aqui vamos definir nosso $a$ e $b$ que sao a quantiade de tratamentos e de blocos respectivamente
+```{r}
+# quantidade de blocos e tratamentos
+t = length(unique(dados_long$produtos)) #tratamentos
+b = length(unique(dados_long$blocos)) #blocos
+```
+
+Em seguida podemos calcular a media geral e as somas de quadrados
+```{r}
+#soma de quadrados
+media_total <- mean(dados_long$values)
+
+ssqtot = sum((dados_long$values - media_total)^2)
+ssqtrat   = sum((tapply(dados_long$values,dados_long$produtos,mean) - media_total)^2) * b
+ssqblocos = sum((tapply(dados_long$values,dados_long$blocos,mean) - media_total)^2) * t
+ssqres = ssqtot-ssqtrat-ssqblocos
+```
+
+\newpage
+Para calcular os quadrados médios do total, tratamento e residuos podemos seguir as seguinte formulas:
+
+$$
+\text{QMTratamento} = \frac{\text{SQTratamento}}{a-1} = \frac{b\sum_{i = 1}^{a}(Y_{i.} - \bar{Y_{..}})^2}{a-1} = \frac{b\sum_{i = 1}^{a}\tau^2}{a-1}
+$$
+
+$$
+\text{QMBloco} = \frac{\text{SQBloco}}{b-1} = \frac{a\sum_{j = 1}^{b}(Y_{.j} - \bar{Y_{..}})^2}{b-1} = \frac{b\sum_{i = 1}^{a}\beta^2}{a-1}
+$$
+
+$$
+\text{QMResiduo} = \frac{\text{SQResiduo}}{(a-1)(b-1)} = \frac{\sum_{i = 1}^{a}\sum_{j = 1}^{b}(Y_{ij} - Y_{.j} - Y_{i.} - \bar{Y_{..}})^2}{(a-1)(b-1)} = \frac{b\sum_{i = 1}^{a}\epsilon^2}{(a-1)(b-1)}
+$$
+Calculando os graus de liberdade dos blocos, tratamentos, e o total!
+```{r}
+#graus de liberdade
+glb = (b-1)
+glt = (t-1)
+glr = glb*glt
+gltot = (b*t)-1
+```
+
+Agora podemos encontrar os quadrados médios
+```{r}
+#quadrados medios
+qmtrat = ssqtrat/glt
+qmbloco = ssqblocos/glb
+qmres = ssqres/glr
+```
+
+\newpage
+
+Sendo assim, para testar a igualdade das medias de tratamento, a estatıstica de teste e definida por:
+
+$$
+F_0 = \frac{\text{QMTratamento}}{\text{QMResiduo}} \sim F_{a-1,(a-1)(b-1)}
+$$
+E possıvel seguir a mesma ideia da estatıstica de teste para efeito de bloco. Entao, tem-se que:
+
+$$
+F_0 = \frac{\text{QMBloco}}{\text{QMResiduo}} \sim F_{b-1,(a-1)(b-1)}
+$$
+
+```{r}
+# valor F observado
+f_obs = qmtrat/qmres
+f_obs_blocos = qmbloco/qmres
+```
+
+
+```{r}
+#valor critico de 5%
+alfa = 0.05
+f_crit = qf(alfa,glt,glr)
+f_crit_bloco = qf(alfa,glb,glr)
+```
+
+
+```{r}
+#p-valor observado
+f_value = round(pf(f_obs,glt,glr,lower.tail = FALSE),3)
+f_value_blocos = round(pf(f_obs_blocos,glb,glr,lower.tail = FALSE),7)
+```
+
+\newpage
+```{r}
+# Tabela da ANOVA
+anova_table <- data.frame(Fonte_de_variacao = c("Produto", "Rolo de tecido", "Residuos", "Total"),
+                          GL = c(glt, glb, glr, gltot),
+                          SS = c(ssqtrat, ssqblocos, ssqres, ssqtot),
+                          MQ = c(round(qmtrat,2), round(qmbloco,2), round(qmres,2), ''),
+                          F = c(round(f_obs,3),round(f_obs_blocos,3),'',''),
+                          Pf = c(f_value, f_value_blocos, "", ''),
+                          stringsAsFactors = FALSE)
+rownames(anova_table) <- NULL
+
+anova_table
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
