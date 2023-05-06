@@ -16,6 +16,8 @@ dados_long = dados %>%
   pivot_longer(cols = c(rolo_1,rolo_2,rolo_3,rolo_4,rolo_5), values_to = "values", names_to = "blocos") %>%
   mutate(produtos = as.factor(produtos)) 
 
+boxplot(dados_long$values ~ dados_long$produtos)
+
 # 1.1) O modelo considerado e as hipoteses de interesse
 
 # 1.2) A tabela de análise de variancia e suas conclusoes
@@ -74,27 +76,81 @@ rownames(anova_table) <- NULL
 anova_table
 # 1.3) Os pressupostos necessarios foram atendidos ?
 
-shapiro.test(dados_long$values)
+#nossos estimadores
+media_total = mean(dados_long$values)
 
-bartlett.test(dados_long$values ~ dados_long$produtos)
+trat_media = tapply(dados_long$values,dados_long$produtos,mean) - media_total
+
+blocos_media = tapply(dados_long$values,dados_long$blocos,mean) - media_total
+
+
+#calculando os residuos
+dados_long = dados_long %>% 
+  mutate(media_trat = ave(values, produtos, FUN = mean) - mean(values),
+         media_bloco = ave(values, blocos, FUN = mean) - mean(values),
+         y_obs = mean(values) + media_trat + media_bloco,
+         residuo = values - y_obs,
+         residuo_normalizado = residuo/qmres)
+
+shapiro.test(dados_long$residuo)
+
+bartlett.test(dados_long$residuo ~ dados_long$produtos)
+
+#pressuposto de modelo aditivo
+
+
+
+# 1.4) Qual a proporção da variacao total explicada pelo modelo ajustado no item 1.2?
+
+
+
+var_exp = 1 - (ssqres/ssqtot)
+
+cat("A variancia explicada pelo medole é", var_exp)
+
+
+
+# 1.5) Considerando que o objetivo do experimento ´e m´aximizar a vari´avel resposta, 
+# qual ´e o elemento quımico que deve ser recomendado? Use teste de Tukey para subsidiar sua resposta.
+
+
+
+
+# 1.6) Refa¸ca as contas necessarias para responder os itens (1.2), (1.3) e (1.6) utilizando as funcoes
+#aov e TukeyHSD e confira com os resultados obtidos.
 
 
 # anova no r para compara os valores
 
 aov_res = aov(dados_long$values ~ dados_long$produtos+dados_long$blocos)
+
 aov_res %>% summary()
 
+#teste de tukey no R
 
+TukeyHSD(aov_res)
 
+#teste de kruskall-wallis
 
+kruskal.test(dados_long$values ~ dados_long$produtos)
 
+# 1.7) Determine a probabilidade do erro tipo 2 para o caso de: (τ1 = −1.5, τ2 = 0, τ3 = 0, τ4 = 1.5).
+alpha = 0.05
+taui = c(-1.5,0,0,1.5)
 
+sigma2 = qmres
 
+delta = b*sum(taui^2/sigma2)
 
+fcrit = qf(1-alpha,t-1,(t-1)*(b-1))
 
+beta = pf(q = fcrit,df1 = t-1,df2 = (t-1)*(b-1), ncp = delta)
 
+poder = 1 - beta
+poder
 
+# 1.8) Para os valores de taus considerados no item anterior, determine qual deve ser o n´umero de
+#blocos para que o erro tipo 2 seja inferior a 10%?
 
-
-
+#vamos aumentando o numero de blocos (b) ate mudar a porcentagem
 
