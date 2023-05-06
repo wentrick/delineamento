@@ -1,4 +1,3 @@
-pacman::p_load(tidyverse)
 
 #montando o dataframe
 produtos = c(1,2,3,4)
