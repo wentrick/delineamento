@@ -111,8 +111,8 @@ cat("A variancia explicada pelo medole é", var_exp)
 
 
 
-# 1.5) Considerando que o objetivo do experimento ´e m´aximizar a vari´avel resposta, 
-# qual ´e o elemento quımico que deve ser recomendado? Use teste de Tukey para subsidiar sua resposta.
+# 1.5) Considerando que o objetivo do experimento e maximizar a variavel resposta, 
+# qual e o elemento quımico que deve ser recomendado? Use teste de Tukey para subsidiar sua resposta.
 
 
 
