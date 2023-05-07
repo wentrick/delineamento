@@ -43,6 +43,14 @@ kable(dados_long)
 
 #### 1.1) O modelo considerado e as hipoteses de interesse
 
+$$
+H_0: \tau_1 = \tau_2 = ... = \tau_a = 0 
+$$
+
+$$
+H_1:  \exists \tau_i \neq 0 
+$$
+Queremos verificar se todos os $\tau_i$ tem o mesmo efeito de tratamento (ou se nao tem diferenca entre os tratamentos que é nosso H0) ou se existe pelo menos um $\tau_i$ que tem o efeito de tratamento diferente de 0
 
 
 \newpage
@@ -104,7 +112,7 @@ $$
 $$
 
 $$
-\text{QMResiduo} = \frac{\text{SQResiduo}}{(a-1)(b-1)} = \frac{\sum_{i = 1}^{a}\sum_{j = 1}^{b}(Y_{ij} - Y_{.j} - Y_{i.} - \bar{Y_{..}})^2}{(a-1)(b-1)} = \frac{b\sum_{i = 1}^{a}\epsilon^2}{(a-1)(b-1)}
+\text{QMResiduo} = \frac{\text{SQResiduo}}{(a-1)(b-1)} = \frac{\sum_{i = 1}^{a}\sum_{j = 1}^{b}(Y_{ij} - Y_{.j} - Y_{i.} - \bar{Y_{..}})^2}{(a-1)(b-1)} 
 $$
 Calculando os graus de liberdade dos blocos, tratamentos, e o total!
 ```{r}
@@ -232,8 +240,18 @@ leveneTest(residuo ~ produtos, dados_long)
 \newpage
 ### 1.4) Qual a proporção da variacao total explicada pelo modelo ajustado no item 1.2?
 
+A proporcao de variancia explicada vai ser em relacao a soma de quadrados total do modelo. Ou seja Parte da variancia é explicada pelos tratamentos e outra parte é pelos blocos. O que sobra, os residuos, é a variacao aleatoria que temos, essa que nao tem explicacao dentro do nosso modelo. Logo para saber quanto que nosso modelo explica podemos fazer de duas formas:
 
 
+Somando a soma de quadrados de tratamento e bloco calculando a porcentagem em relacao ao total
+```{r}
+var_exp = (ssqtrat+ssqblocos)/ssqtot
+
+cat("A variancia explicada pelo modelo é", var_exp)
+```
+
+
+ou podemos ir pelo caminho contrario onde calculamos a variancia explicada pelo residuo e diminuimos do total
 ```{r}
 var_exp = 1 - (ssqres/ssqtot)
 
@@ -261,7 +279,7 @@ aov_res %>% summary()
 TukeyHSD(aov_res)
 ```
 
-
+Como nao temos normalidade dos residuos, o certo é fazer o kruskall-wallis no lugar da ANOVA
 ```{r}
 #teste de kruskall-wallis
 
@@ -269,16 +287,29 @@ kruskal.test(dados_long$values ~ dados_long$produtos)
 ```
 
 
+\newpage
+### 1.7) Determine a probabilidade do erro tipo 2 para o caso de: ($\tau_1$ = -1.5, $\tau_2$ = 0, $\tau_3$ = 0, $\tau_4$ = 1.5).   
+
+Pode-se mostrar que, se H0 for falsa, a estatıstica F0 = QMTrat/QMRes tem distribuicao F nao central com a - 1 e (a - 1)(b - 1) graus de liberdade e parametro de nao centralidade $\delta$,Se $\delta$ = 0, a distribuicao F nao central torna-se a distribuicao F usual (central). O parametro de nao centralidade da distribuicao F pode ser obtido ao calcular:  
+
+$$
+\delta = \frac{b\sum_{i = 1}^{a}\tau^2}{\sigma^2}
+$$
+Sabemos que um bom estimador para $\sigma^2$ é o quadrado médio do residuo, ou seja:
+$$
+\sigma^2 = \text{QMResiduo} = \frac{\text{SQResiduo}}{(a-1)(b-1)} = \frac{\sum_{i = 1}^{a}\sum_{j = 1}^{b}(Y_{ij} - Y_{.j} - Y_{i.} - \bar{Y_{..}})^2}{(a-1)(b-1)}
+$$
+
 ```{r}
-# 1.7) Determine a probabilidade do erro tipo 2 para o caso de: (t1 = -1.5, t2 = 0, t3 = 0, t4 = 1.5).
 alpha = 0.05
-taui = c(-1.5,0,0,1.5)
 
-sigma2 = qmres
+taui = c(-1.5,0,0,1.5) #taui dados pela questao
 
-delta = b*sum(taui^2/sigma2)
+sigma2 = qmres #estimador da variancia
 
-fcrit = qf(1-alpha,t-1,(t-1)*(b-1))
+delta = b*sum(taui^2/sigma2) #nosso delta de nao centralidade da F
+
+fcrit = qf(1-alpha,t-1,(t-1)*(b-1)) #calculando o valor F critico em relacao ao erro de tipo II
 
 beta = pf(q = fcrit,df1 = t-1,df2 = (t-1)*(b-1), ncp = delta)
 
@@ -293,7 +324,22 @@ poder
 
 ```{r}
 #vamos aumentando o numero de blocos (b) ate mudar a porcentagem
+b = 7 #caso os experiemtno tenha 10 blocos
 
+alpha = 0.05
+
+taui = c(-1.5,0,0,1.5) #taui dados pela questao
+
+sigma2 = qmres #estimador da variancia
+
+delta = b*sum(taui^2/sigma2) #nosso delta de nao centralidade da F
+
+fcrit = qf(1-alpha,t-1,(t-1)*(b-1)) #calculando o valor F critico em relacao ao erro de tipo II
+
+beta = pf(q = fcrit,df1 = t-1,df2 = (t-1)*(b-1), ncp = delta)
+
+poder = 1 - beta
+poder
 ```
 
 
