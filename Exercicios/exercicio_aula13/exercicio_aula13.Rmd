@@ -14,7 +14,8 @@ pacman::p_load(tidyverse,knitr,car,formatR)
 
 ### Exercicio 1:
 
-Uma quımica deseja testar o efeito de quatro agentes na resistencia de um determinado tipo de tecido. Porque pode haver variabilidade de um rolo de tecido para outro, a quımica decide usar um delineamento de blocos casualizados. Sendo que, os rolos de tecido serao considerados como blocos. Ela seleciona cinco rolos e aplica todos os quatro marcas quımicos em ordem aleatoria para cada rolo. Na Tabela 1 estao os resultados das resistencias resultante.
+
+Em uma fazenda com criação de bezerras de leite das raças Holandesa, Jersey e Girolando, o veterinário que testar 5 marcas de sucedâneo com o objetivo de obter maior peso ao desmame (7 meses) das bezerras. Para o experimento foram separadas 15 bezerras, formaram-se blocos por raça e os animais foram sorteados, para distribuir inteiramente ao acaso as 5 marcas de sucedâneo (A, B, C, D e E). Os dados estão na Tabela 1.
 
 
 
@@ -34,7 +35,6 @@ kable(dados)
 Para trabalhar com os dados precisamos formatar eles de forma que fiquem na forma long por meio da funcao pivot_longer()
 
 ```{r}
-#padronizando o data frame para analise
 
 #padronizando o data frame para analise
 
