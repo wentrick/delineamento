@@ -103,17 +103,38 @@ bartlett.test(dados_long$residuo ~ dados_long$produtos)
 
 # 1.4) Qual a proporção da variacao total explicada pelo modelo ajustado no item 1.2?
 
-
-
 var_exp = 1 - (ssqres/ssqtot)
 
 cat("A variancia explicada pelo medole é", var_exp)
 
+var_exp = ((ssqtrat+ssqblocos)/ssqtot)
+
+cat("A variancia explicada pelo medole é", var_exp)
 
 
-# 1.5) Considerando que o objetivo do experimento e maximizar a variavel resposta, 
-# qual e o elemento quımico que deve ser recomendado? Use teste de Tukey para subsidiar sua resposta.
+# 1.5) Considerando que o objetivo do experimento ´e m´aximizar a vari´avel resposta, 
+# qual ´e o elemento quımico que deve ser recomendado? Use teste de Tukey para subsidiar sua resposta.
 
+alfa = 0.05
+
+q.value <- qtukey(alfa, t, glr, lower.tail = F)
+
+hsd = q.value * sqrt(qmres/b)
+
+round(2*ptukey(5.3, t, glr, lower.tail = F),4)
+
+combinacoes = combn(unique(dados$produtos),2)
+comb_diff = combn(trat_media,2)
+
+diferencas <- data.frame(
+  comparacao = apply(combinacoes, 2, paste0, collapse = "-"),
+  diferenca = apply(comb_diff, 2, diff)) %>%
+  mutate(lwr = diferenca - q.value * sqrt(qmres/b),
+         upr = diferenca + q.value * sqrt(qmres/b),
+         pvalor = round(ptukey(abs(diferenca/(sqrt(qmres/b))), t, glr, lower.tail = F),6),
+         hsd = abs(diferenca) >= hsd)
+
+diferencas
 
 
 
@@ -153,5 +174,14 @@ poder
 # 1.8) Para os valores de taus considerados no item anterior, determine qual deve ser o n´umero de
 #blocos para que o erro tipo 2 seja inferior a 10%?
 
-#vamos aumentando o numero de blocos (b) ate mudar a porcentagem
+b = 6
+
+delta = b*sum(taui^2/sigma2)
+
+fcrit = qf(1-alpha,t-1,(t-1)*(b-1))
+
+beta = pf(q = fcrit,df1 = t-1,df2 = (t-1)*(b-1), ncp = delta)
+
+poder = 1 - beta
+poder
 
