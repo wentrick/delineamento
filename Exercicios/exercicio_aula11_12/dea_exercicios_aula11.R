@@ -108,13 +108,13 @@ admod = lm(dados_long$values ~ dados_long$produtos + dados_long$blocos + ad)
 anova(mod,admod)
 # 1.4) Qual a proporção da variacao total explicada pelo modelo ajustado no item 1.2?
 
-var_exp = 1 - (ssqres/ssqtot)
+R2 = 1 - (ssqres/ssqtot)
 
-cat("A variancia explicada pelo modelo é", var_exp)
+cat("A variancia explicada pelo medole é", R2)
 
-var_exp = ((ssqtrat+ssqblocos)/ssqtot)
+R2 = ((ssqtrat+ssqblocos)/ssqtot)
 
-cat("A variancia explicada pelo modelo é", var_exp)
+cat("A variancia explicada pelo medole é", R2)
 
 
 # 1.5) Considerando que o objetivo do experimento ´e m´aximizar a vari´avel resposta, 
