@@ -93,9 +93,20 @@ dados_long = dados_long %>%
          residuo = values - y_obs,
          residuo_normalizado = residuo/qmres)
 
+#normalidade
 shapiro.test(dados_long$residuo)
 
+#homcedasticidade
 bartlett.test(dados_long$residuo ~ dados_long$marcas)
+
+#adititvidade
+mod = lm(dados_long$values ~ dados_long$marcas + dados_long$blocos)
+
+ad = (predict(mod))^2
+
+admod = lm(dados_long$values ~ dados_long$marcas + dados_long$blocos + ad)
+
+anova(mod,admod)
 
 # 1.4) Qual a proporção da variacao total explicada pelo modelo ajustado no item 1.2?
 
