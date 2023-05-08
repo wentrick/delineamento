@@ -1,9 +1,10 @@
 ---
-title: "Exercicio Aula 11 e 12 Delineamento"
+title: "Exercicio Aula 13 Delineamento"
 author: "Davi Wentrick Feijó"
-date: "2023-05-06"
+date: "2023-05-08"
 output: pdf_document
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -13,19 +14,19 @@ pacman::p_load(tidyverse,knitr,car,formatR)
 
 ### Exercicio 1:
 
-Uma quımica deseja testar o efeito de quatro agentes na resistencia de um determinado tipo de tecido. Porque pode haver variabilidade de um rolo de tecido para outro, a quımica decide usar um delineamento de blocos casualizados. Sendo que, os rolos de tecido serao considerados como blocos. Ela seleciona cinco rolos e aplica todos os quatro produtos quımicos em ordem aleatoria para cada rolo. Na Tabela 1 estao os resultados das resistencias resultante.
+Uma quımica deseja testar o efeito de quatro agentes na resistencia de um determinado tipo de tecido. Porque pode haver variabilidade de um rolo de tecido para outro, a quımica decide usar um delineamento de blocos casualizados. Sendo que, os rolos de tecido serao considerados como blocos. Ela seleciona cinco rolos e aplica todos os quatro marcas quımicos em ordem aleatoria para cada rolo. Na Tabela 1 estao os resultados das resistencias resultante.
 
 
 
 ```{r}
-produtos = c(1,2,3,4)
-rolo_1 = c(73,73,75,73)
-rolo_2 = c(68,67,68,71)
-rolo_3 = c(74,75,78,75)
-rolo_4 = c(71,72,73,75)
-rolo_5 = c(67,70,68,69)
+#montando o dataframe
+marcas = c("A","B","C","D","E")
+holandesa = c(122,125,120,150,153)
+jersey = c(144,137,134,155,165)
+girolando = c(145,144,136,156,171)
 
-dados = data.frame(produtos,rolo_1,rolo_2,rolo_3,rolo_4,rolo_5)
+
+dados = data.frame(marcas,holandesa,jersey,girolando)
 kable(dados)
 ```
 
@@ -35,15 +36,18 @@ Para trabalhar com os dados precisamos formatar eles de forma que fiquem na form
 ```{r}
 #padronizando o data frame para analise
 
+#padronizando o data frame para analise
+
 dados_long = dados %>%
-  pivot_longer(cols = c(rolo_1,rolo_2,rolo_3,rolo_4,rolo_5), values_to = "values", names_to = "blocos") %>%
-  mutate(produtos = as.factor(produtos)) 
+  pivot_longer(cols = c(holandesa,jersey,girolando), values_to = "values", names_to = "blocos") %>%
+  mutate(marcas = as.factor(marcas)) 
 
 kable(dados_long)
 ```
 
+
 ```{r echo=FALSE}
-boxplot(dados_long$values ~ dados_long$produtos)
+boxplot(dados_long$values ~ dados_long$marcas)
 ```
 
 \newpage
@@ -91,7 +95,7 @@ $$
 Aqui vamos definir nosso $a$ e $b$ que sao a quantiade de tratamentos e de blocos respectivamente
 ```{r}
 # quantidade de blocos e tratamentos
-t = length(unique(dados_long$produtos)) #tratamentos
+t = length(unique(dados_long$marcas)) #tratamentos
 b = length(unique(dados_long$blocos)) #blocos
 ```
 
@@ -101,7 +105,7 @@ Em seguida podemos calcular a media geral e as somas de quadrados
 media_total <- mean(dados_long$values)
 
 ssqtot = sum((dados_long$values - media_total)^2)
-ssqtrat   = sum((tapply(dados_long$values,dados_long$produtos,mean) - media_total)^2) * b
+ssqtrat   = sum((tapply(dados_long$values,dados_long$marcas,mean) - media_total)^2) * b
 ssqblocos = sum((tapply(dados_long$values,dados_long$blocos,mean) - media_total)^2) * t
 ssqres = ssqtot-ssqtrat-ssqblocos
 ```
@@ -201,7 +205,7 @@ $$
 #nossos estimadores
 media_total = mean(dados_long$values)
 
-trat_media = tapply(dados_long$values,dados_long$produtos,mean) - media_total
+trat_media = tapply(dados_long$values,dados_long$marcas,mean) - media_total
 
 blocos_media = tapply(dados_long$values,dados_long$blocos,mean) - media_total
 ```
@@ -217,7 +221,7 @@ $$
 ```{r}
 #calculando os residuos
 dados_long = dados_long %>% 
-  mutate(media_trat = ave(values, produtos, FUN = mean) - mean(values),
+  mutate(media_trat = ave(values, marcas, FUN = mean) - mean(values),
          media_bloco = ave(values, blocos, FUN = mean) - mean(values),
          y_obs = mean(values) + media_trat + media_bloco,
          residuo = values - y_obs,
@@ -231,17 +235,17 @@ Agora podemos realizar nossos testes de normalidade e de igualdade de variancias
 ```{r}
 shapiro.test(dados_long$residuo)
 
-leveneTest(residuo ~ produtos, dados_long)
+leveneTest(residuo ~ marcas, dados_long)
 ```
 
 
 ```{r}
 #pressuposto de modelo aditivo
-mod = lm(dados_long$values ~ dados_long$produtos + dados_long$blocos)
+mod = lm(dados_long$values ~ dados_long$marcas + dados_long$blocos)
 
 ad = (predict(mod))^2
 
-admod = lm(dados_long$values ~ dados_long$produtos + dados_long$blocos + ad)
+admod = lm(dados_long$values ~ dados_long$marcas + dados_long$blocos + ad)
 
 anova(mod,admod)
 
@@ -303,7 +307,7 @@ hsd = q.value * sqrt(qmres/b) #valor a ser comparado com as diferencas absolutas
 
 
 ```{r}
-combinacoes = combn(unique(dados$produtos),2) #todas as combinacoes de médias
+combinacoes = combn(unique(dados$marcas),2) #todas as combinacoes de médias
 comb_diff = combn(trat_media,2) #vetor comas combinacoes de medias 2 a 2
 
 diferencas <- data.frame(
@@ -328,7 +332,7 @@ kable(diferencas)
 ```{r}
 # anova no r para compara os valores
 
-aov_res = aov(dados_long$values ~ dados_long$produtos+dados_long$blocos)
+aov_res = aov(dados_long$values ~ dados_long$marcas+dados_long$blocos)
 
 aov_res %>% summary()
 
@@ -341,7 +345,7 @@ Como nao temos normalidade dos residuos, o certo é fazer o kruskall-wallis no l
 ```{r}
 #teste de kruskall-wallis
 
-kruskal.test(dados_long$values ~ dados_long$produtos)
+kruskal.test(dados_long$values ~ dados_long$marcas)
 ```
 
 
