@@ -166,7 +166,7 @@ teste_stat_c3 = sum(c3*trat_medias$media)/(sum((ssqres/n)*(c3)^2))
 alpha = 0.05
 sigma = 25
 medias = c(575,600,650,675)
-npc =  r*sum(medias/(sigma^2))
+delta =  r*sum(medias/(sigma^2))
 
 fcrit = qf(1-alpha,glt,glr)
 
