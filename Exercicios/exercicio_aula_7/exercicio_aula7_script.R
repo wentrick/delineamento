@@ -34,18 +34,16 @@ ssqblocos = sum((tapply(dados_long$values,dados_long$reps,mean) - media_total)^2
 ssqres = ssqtot-ssqtrat-ssqblocos
 
 #graus de liberdade
-
-
 glt = (t-1)
 glr = (r*t)-t
 gltot = (r*t)-1
+
 #quadrados medios
 
 qmtrat = ssqtrat/glt
 qmres = ssqres/glr
 
 # valor F observado
-
 f_obs = qmtrat/qmres
 
 #valor critico de 5%
@@ -53,7 +51,6 @@ alfa = 0.05
 f_crit = qf(alfa,glt,glr)
 
 #p-valor observado
-
 f_value = round(pf(f_obs,glt,glr,lower.tail = FALSE),11)
 
 
@@ -69,7 +66,6 @@ anova_table <- data.frame(Fonte_de_variacao = c("Potencia", "Residuos", "Total")
 rownames(anova_table) <- NULL
 
 anova_table
-
 #1.3 - Os pressupostos necessarios foram atendidos
 
 #nossos estimadores
@@ -150,19 +146,21 @@ lsd = qt(alfa/2,N-a, lower.tail = FALSE)*sqrt((ssqres/(a*n-a))*(1/n + 1/n))
 #contrastes
 
 c1 =  c(1,1,-1,-1)
-
 c2 =  c(1,-1,0,0)
-
 c3 =  c(0,0,1,-1)
 
+teste_stat_c1 = sum(c1*trat_media)^2/(sum((ssqres/n)*(c1)^2))
+teste_stat_c2 = sum(c2*trat_media)^2/(sum((ssqres/n)*(c2)^2))
+teste_stat_c3 = sum(c3*trat_media)^2/(sum((ssqres/n)*(c3)^2))
 
+#p-valor
 
-teste_stat_c1 = sum(c1*trat_medias$media)/(sum((ssqres/n)*(c1)^2))
-teste_stat_c2 = sum(c2*trat_medias$media)/(sum((ssqres/n)*(c2)^2))
-teste_stat_c3 = sum(c3*trat_medias$media)/(sum((ssqres/n)*(c3)^2))
-
+pf(teste_stat_c1,1,(r*t)-t, lower.tail = FALSE)
+pf(teste_stat_c2,1,(r*t)-t, lower.tail = FALSE)
+pf(teste_stat_c3,1,(r*t)-t, lower.tail = FALSE)
 
 #1.8) Calcule a probabilidade do erro tipo II para μ1 = 575, μ2 = 600, μ3 = 650, μ4 = 675 e σ = 25.
+
 alpha = 0.05
 sigma = 25
 medias = c(575,600,650,675)
