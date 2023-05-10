@@ -127,8 +127,6 @@ q.value <- qtukey(alfa, t, glr, lower.tail = F)
 
 hsd = q.value * sqrt(qmres/b)
 
-round(2*ptukey(5.3, t, glr, lower.tail = F),4)
-
 combinacoes = combn(unique(dados$marcas),2)
 comb_diff = combn(trat_media,2)
 

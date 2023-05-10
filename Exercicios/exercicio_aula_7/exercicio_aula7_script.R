@@ -30,8 +30,7 @@ media_total <- mean(dados_long$values)
 
 ssqtot = sum((dados_long$values - media_total)^2)
 ssqtrat   = sum((tapply(dados_long$values,dados_long$potencia,mean) - media_total)^2) * r
-ssqblocos = sum((tapply(dados_long$values,dados_long$reps,mean) - media_total)^2) * t
-ssqres = ssqtot-ssqtrat-ssqblocos
+ssqres = ssqtot-ssqtrat
 
 #graus de liberdade
 glt = (t-1)
@@ -66,6 +65,9 @@ anova_table <- data.frame(Fonte_de_variacao = c("Potencia", "Residuos", "Total")
 rownames(anova_table) <- NULL
 
 anova_table
+
+aov_res = aov(dados_long$values ~ dados_long$potencia)
+summary(aov_res)
 #1.3 - Os pressupostos necessarios foram atendidos
 
 #nossos estimadores
@@ -93,7 +95,7 @@ qqline(dados_long$residuo)
 
 
 #independencia por gráfico
-plot(dados_residuo$residuo)
+plot(dados_long$residuo)
 
 
 #1.4 - Qual sua conclusao sobre os resultados encontrados 
@@ -134,7 +136,7 @@ diferencas
 alfa = 0.05
 n = 5
 N = 20
-test_stat = (max(trat_medias$media) - min(trat_medias$media))/sqrt((ssqres/(a*n-a))*(1/n + 1/n))
+test_stat = (max(trat_me$media) - min(trat_medias$media))/sqrt((ssqres/(a*n-a))*(1/n + 1/n))
 
 
 qt((1-0.95)/2,N-1*sqrt((ssqres/(a*n-a))*(1/n + 1/n)))
@@ -164,7 +166,8 @@ pf(teste_stat_c3,1,(r*t)-t, lower.tail = FALSE)
 alpha = 0.05
 sigma = 25
 medias = c(575,600,650,675)
-delta =  r*sum(medias/(sigma^2))
+taui = medias - mean(medias)
+delta =  r*sum(taui^2/(sigma^2))
 
 fcrit = qf(1-alpha,glt,glr)
 
