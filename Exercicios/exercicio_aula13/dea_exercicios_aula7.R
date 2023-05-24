@@ -1,4 +1,6 @@
+#lista de exercicios delineamento 2023/1 - Davi Wentrick Feijó - 200016806
 pacman::p_load(tidyverse,car)
+
 # Exercicio 1
 
 potencia = c(160,180,200,220)
