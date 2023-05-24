@@ -139,6 +139,7 @@ N = 20
 test_stat = (max(trat_me$media) - min(trat_medias$media))/sqrt((ssqres/(a*n-a))*(1/n + 1/n))
 
 
+
 qt((1-0.95)/2,N-1*sqrt((ssqres/(a*n-a))*(1/n + 1/n)))
 
 pt(test_stat,N-1*sqrt((ssqres/(a*n-a))*(1/n + 1/n)),lower.tail = FALSE)
@@ -151,9 +152,11 @@ c1 =  c(1,1,-1,-1)
 c2 =  c(1,-1,0,0)
 c3 =  c(0,0,1,-1)
 
-teste_stat_c1 = sum(c1*trat_media)^2/(sum((ssqres/n)*(c1)^2))
-teste_stat_c2 = sum(c2*trat_media)^2/(sum((ssqres/n)*(c2)^2))
-teste_stat_c3 = sum(c3*trat_media)^2/(sum((ssqres/n)*(c3)^2))
+trat_medias = tapply(dados_long$values,dados_long$potencia,mean)
+
+teste_stat_c1 = sum(c1*trat_media)^2/((qmres/n)*sum((c1)^2))
+teste_stat_c2 = sum(c2*trat_media)^2/((qmres/n)*sum((c2)^2))
+teste_stat_c3 = sum(c3*trat_media)^2/((qmres/n)*sum((c3)^2))
 
 #p-valor
 

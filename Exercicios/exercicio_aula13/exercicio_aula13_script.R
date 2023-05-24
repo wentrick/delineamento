@@ -176,7 +176,7 @@ poder
 # 1.8) Para os valores de taus considerados no item anterior, determine qual deve ser o numero de
 #blocos para que o erro tipo 2 seja inferior a 10%?
 
-b = 6
+b = 7
 
 delta = b*sum(taui^2/sigma2)
 
