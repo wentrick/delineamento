@@ -108,9 +108,10 @@ coluna_media = tapply(dados_padronizado$values,dados_padronizado$coluna,mean) - 
 
 #calculando os residuos
 dados_padronizado = dados_padronizado %>% 
-  mutate(media_trat = ave(values, linhas, FUN = mean) - mean(values),
-         media_bloco = ave(values, coluna, FUN = mean) - mean(values),
-         y_obs = mean(values) + media_trat + media_bloco,
+  mutate(media_linha = ave(values, linhas, FUN = mean) - mean(values),
+         media_coluna = ave(values, coluna, FUN = mean) - mean(values),
+         media_trat = ave(values, tratamento, FUN = mean) - mean(values),
+         y_obs = mean(values) + media_trat + media_linha+media_coluna,
          residuo = values - y_obs,
          residuo_normalizado = residuo/qmres)
 
