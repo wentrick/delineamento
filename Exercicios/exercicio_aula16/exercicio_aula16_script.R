@@ -2,34 +2,35 @@ pacman::p_load(tidyverse,dplyr,tidyr)
 
 
 #montando o dataframe
-linhas = c(1,2,3,4,5)
-col_1 = c(432,724,489,494,515)
-col_2 = c(518,478,384,500,660)
-col_3 = c(458,524,556,313,438)
-col_4 = c(583,550,297,486,394)
-col_5 = c(331,400,420,501,318)
+linhas = c(1:12)
+col_1 = c(19.56,22.94,25.06,23.24,16.28,18.53,23.98,15.33,24.41,16.65,18.96,21.49)
+col_2 = c(23.16,27.51,17.70,23.54,22.29,19.89,20.46,23.02,22.44,22.69,24.19,15.78)
+col_3 = c(29.72,23.71,22.32,18.75,28.09,20.42,19.28,24.97,19.23,24.94,21.95,24.65)
 
-dados = data.frame(linhas,col_1,col_2,col_3,col_4,col_5)
+dados = data.frame(linhas,col_1,col_2,col_3)
 
 #montando o dataframe dos tratamentos
-linhas = c(1,2,3,4,5)
-col_1 = c("D","C","E","B","A")
-col_2 = c("A","E","B","D","C")
-col_3 = c("B","A","C","E","D")
-col_4 = c("C","B","D","A","E")
-col_5 = c("E","D","A","C","B")
+linhas = c(1:12)
+col_1 = c("A","B","C","B","A","C","C","A","B","A","B","C")
+col_2 = c("B","C","A","C","B","A","A","B","C","B","C","A")
+col_3 = c("C","A","B","A","C","B","B","C","A","C","A","B")
 
-dados_tratamento = data.frame(linhas,col_1,col_2,col_3,col_4,col_5)
+
+dados_tratamento = data.frame(linhas,col_1,col_2,col_3)
 #padronizando o data frame para analise
 
 dados_long = dados %>%
-  pivot_longer(cols = c(col_1,col_2,col_3,col_4,col_5), values_to = "values", names_to = "coluna") %>%
+  pivot_longer(cols = c(col_1,col_2,col_3), values_to = "values", names_to = "coluna") %>%
   mutate(linhas = as.factor(linhas)) 
 
 dados_long_trat = dados_tratamento %>%
-  pivot_longer(cols = c(col_1,col_2,col_3,col_4,col_5), values_to = "tratamento", names_to = "coluna") %>%
+  pivot_longer(cols = c(col_1,col_2,col_3), values_to = "tratamento", names_to = "coluna") %>%
   mutate(linhas = as.factor(linhas)) 
 
+
+dados_padronizado = left_join(dados_long,dados_long_trat,by = join_by(linhas == linhas,coluna == coluna)) %>%
+  mutate(coluna = as.factor(coluna),
+         tratamento = as.factor(tratamento))
 
 dados_padronizado = left_join(dados_long,dados_long_trat,by = join_by(linhas == linhas,coluna == coluna)) %>%
   mutate(coluna = as.factor(coluna),
@@ -41,23 +42,24 @@ dados_padronizado = left_join(dados_long,dados_long_trat,by = join_by(linhas == 
 # quantidade de linhas, colunas e tratamentos sao todas iguais no caso é 5
 p = length(unique(dados_padronizado$tratamento)) #tratamentos
 N = p^2
+n = 4 #numero de repetições
 #soma de quadrados
 media_total <- mean(dados_padronizado$values)
 
 ssqtot = sum((dados_padronizado$values - media_total)^2)
-ssqtrat = sum((tapply(dados_padronizado$values,dados_padronizado$tratamento,mean) - media_total)^2)* p
-ssqcol = sum((tapply(dados_padronizado$values,dados_padronizado$coluna,mean) - media_total)^2) *p
+ssqtrat = sum((tapply(dados_padronizado$values,dados_padronizado$tratamento,mean) - media_total)^2)* p*n
+ssqcol = sum((tapply(dados_padronizado$values,dados_padronizado$coluna,mean) - media_total)^2) *p*n
 ssqlinha = sum((tapply(dados_padronizado$values,dados_padronizado$linhas,mean) - media_total)^2) *p
 ssqres = ssqtot-(ssqtrat+ssqcol+ssqlinha)
 
 
 #graus de liberdade
 
-gll = (p-1)
+gll = (n*p-1)
 glc = (p-1)
 glt = (p-1)
-gltot = (p^2)-1
-glr = (p-2)*(p-1)
+gltot = (n*p^2)-1
+glr = gltot - (gll+glc+glt)
 #quadrados medios
 
 qmtrat = ssqtrat/glt
@@ -132,11 +134,11 @@ anova(mod,admod)
 
 R2 = 1 - (ssqres/ssqtot)
 
-cat("A variancia explicada pelo medole é", R2)
+cat("A variancia explicada pelo modelo é", R2)
 
 R2 = ((ssqtrat+ssqcol+ssqlinha)/ssqtot)
 
-cat("A variancia explicada pelo medole é", R2)
+cat("A variancia explicada pelo modelo é", R2)
 
 # 1.5) Considerando que o objetivo do experimento ´e m´aximizar a vari´avel resposta, 
 # qual ´e o elemento quımico que deve ser recomendado? Use teste de Tukey para subsidiar sua resposta.
@@ -175,6 +177,10 @@ aov_res %>% summary()
 #teste de tukey no R
 
 TukeyHSD(aov_res)
+
+
+
+
 
 
 
