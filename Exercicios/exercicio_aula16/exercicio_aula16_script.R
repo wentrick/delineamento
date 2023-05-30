@@ -119,7 +119,7 @@ dados_padronizado = dados_padronizado %>%
 
 shapiro.test(dados_padronizado$residuo)
 
-bartlett.test(dados_padronizado$residuo ~ dados_padronizado$linhas)
+bartlett.test(dados_padronizado$residuo ~ dados_padronizado$tratamento)
 
 #pressuposto de modelo aditivo
 
