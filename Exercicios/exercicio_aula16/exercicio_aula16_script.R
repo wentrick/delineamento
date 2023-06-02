@@ -41,21 +41,24 @@ dados_padronizado = left_join(dados_long,dados_long_trat,by = join_by(linhas == 
 #1.2) A tabela de analise de variancia e suas conclusoes.
 # quantidade de linhas, colunas e tratamentos sao todas iguais no caso é 5
 p = length(unique(dados_padronizado$tratamento)) #tratamentos
-N = p^2
-n = 4 #numero de repetições
+rep = 4 #numero de repetições
+
+N <- length(dados_padronizado$linhas) # total sample size
+n <- length(dados_padronizado$linhas) / p # number of samples per group (since sizes are equal)
+
 #soma de quadrados
 media_total <- mean(dados_padronizado$values)
 
 ssqtot = sum((dados_padronizado$values - media_total)^2)
-ssqtrat = sum((tapply(dados_padronizado$values,dados_padronizado$tratamento,mean) - media_total)^2)* p*n
-ssqcol = sum((tapply(dados_padronizado$values,dados_padronizado$coluna,mean) - media_total)^2) *p*n
+ssqtrat = sum((tapply(dados_padronizado$values,dados_padronizado$tratamento,mean) - media_total)^2)* p*rep
+ssqcol = sum((tapply(dados_padronizado$values,dados_padronizado$coluna,mean) - media_total)^2) *p*rep
 ssqlinha = sum((tapply(dados_padronizado$values,dados_padronizado$linhas,mean) - media_total)^2) *p
 ssqres = ssqtot-(ssqtrat+ssqcol+ssqlinha)
 
 
 #graus de liberdade
 
-gll = (n*p-1)
+gll = (rep*p-1)
 glc = (p-1)
 glt = (p-1)
 gltot = (n*p^2)-1
@@ -147,7 +150,7 @@ alfa = 0.05
 
 q.value <- qtukey(alfa, p, glr, lower.tail = F)
 
-hsd = q.value * sqrt(qmres/p)
+hsd = q.value * sqrt(qmres/n)
 
 trat = sort(unique(dados_padronizado$tratamento)) #meus tratamentos ordenados
 
@@ -157,9 +160,9 @@ comb_diff = combn(trat_media,2)
 diferencas <- data.frame(
   comparacao = sapply(combinacoes, paste0, collapse = "-") ,
   diferenca = apply(comb_diff, 2, diff)) %>%
-  mutate(lwr = diferenca - q.value * sqrt(qmres/p),
-         upr = diferenca + q.value * sqrt(qmres/p),
-         pvalor = round(ptukey(abs(diferenca/(sqrt(qmres/p))), p, glr, lower.tail = F),6),
+  mutate(lwr = diferenca - q.value * sqrt(qmres/n),
+         upr = diferenca + q.value * sqrt(qmres/n),
+         pvalor = round(ptukey(abs(diferenca/(sqrt(qmres/n))), p, glr, lower.tail = F),6),
          hsd = abs(diferenca) >= hsd)
 
 diferencas
@@ -177,7 +180,6 @@ aov_res %>% summary()
 #teste de tukey no R
 
 TukeyHSD(aov_res)
-
 
 
 
