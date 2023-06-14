@@ -1,23 +1,23 @@
 pacman::p_load(tidyverse,dplyr,tidyr)
 
-
 #montando o dataframe
-linhas = c(1,2,3,4,5)
-col_1 = c(432,724,489,494,515)
-col_2 = c(518,478,384,500,660)
-col_3 = c(458,524,556,313,438)
-col_4 = c(583,550,297,486,394)
-col_5 = c(331,400,420,501,318)
+linhas = c(1:5)
+col_1 = c(83,80,82,81,74)
+col_2 = c(77,85,97,93,87)
+col_3 = c(80,85,76,81,89)
+col_4 = c(83,81,84,91,88)
+col_5 = c(85,79,76,83,72)
 
 dados = data.frame(linhas,col_1,col_2,col_3,col_4,col_5)
 
 #montando o dataframe dos tratamentos
-linhas = c(1,2,3,4,5)
-col_1 = c("D","C","E","B","A")
-col_2 = c("A","E","B","D","C")
-col_3 = c("B","A","C","E","D")
-col_4 = c("C","B","D","A","E")
-col_5 = c("E","D","A","C","B")
+linhas = c(1:5)
+col_1 = c("A3","A1","A2","A4","A5")
+col_2 = c("A1","A5","A3","A2","A4")
+col_3 = c("A4","A2","A5","A1","A3")
+col_4 = c("A5","A4","A1","A3","A2")
+col_5 = c("A2","A3","A4","A5","A1")
+
 
 dados_tratamento = data.frame(linhas,col_1,col_2,col_3,col_4,col_5)
 #padronizando o data frame para analise
@@ -35,16 +35,14 @@ dados_padronizado = left_join(dados_long,dados_long_trat,by = join_by(linhas == 
   mutate(coluna = as.factor(coluna),
          tratamento = as.factor(tratamento))
 
-#Boxplot
-
-boxplot(dados_padronizado$values ~ dados_padronizado$tratamento)
-
 #1.1) O modelo considerado e as hipoteses de interesse.
 
 #1.2) A tabela de analise de variancia e suas conclusoes.
 # quantidade de linhas, colunas e tratamentos sao todas iguais no caso é 5
 p = length(unique(dados_padronizado$tratamento)) #tratamentos
-N = p^2
+N <- p^2 # total sample size
+n <- length(dados_padronizado$linhas) / p # number of samples per group (since sizes are equal)
+
 #soma de quadrados
 media_total <- mean(dados_padronizado$values)
 
@@ -147,9 +145,9 @@ cat("A variancia explicada pelo medole é", R2)
 
 alfa = 0.05
 
-q.value <- qtukey(alfa, p, glr, lower.tail = F)
+q.value <- qtukey(alfa, n, glr, lower.tail = F)
 
-hsd = q.value * sqrt(qmres/p)
+hsd = q.value * sqrt(qmres/n)
 
 trat = sort(unique(dados_padronizado$tratamento)) #meus tratamentos ordenados
 
@@ -159,9 +157,9 @@ comb_diff = combn(trat_media,2)
 diferencas <- data.frame(
   comparacao = sapply(combinacoes, paste0, collapse = "-") ,
   diferenca = apply(comb_diff, 2, diff)) %>%
-  mutate(lwr = diferenca - q.value * sqrt(qmres/p),
-         upr = diferenca + q.value * sqrt(qmres/p),
-         pvalor = round(ptukey(abs(diferenca/(sqrt(qmres/p))), p, glr, lower.tail = F),6),
+  mutate(lwr = diferenca - q.value * sqrt(qmres/n),
+         upr = diferenca + q.value * sqrt(qmres/n),
+         pvalor = round(ptukey(abs(diferenca/(sqrt(qmres/n))), n, glr, lower.tail = F),6),
          hsd = abs(diferenca) >= hsd)
 
 diferencas

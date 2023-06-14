@@ -18,7 +18,9 @@ dados_long = dados %>%
   pivot_longer(cols = c(rolo_1,rolo_2,rolo_3,rolo_4,rolo_5), values_to = "values", names_to = "blocos") %>%
   mutate(produtos = as.factor(produtos)) 
 
-boxplot(dados_long$values ~ dados_long$produtos)
+#Boxplot
+
+boxplot(dados_padronizado$values ~ dados_padronizado$tratamento)
 
 # 1.1) O modelo considerado e as hipoteses de interesse
 

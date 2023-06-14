@@ -32,9 +32,9 @@ dados_padronizado = left_join(dados_long,dados_long_trat,by = join_by(linhas == 
   mutate(coluna = as.factor(coluna),
          tratamento = as.factor(tratamento))
 
-dados_padronizado = left_join(dados_long,dados_long_trat,by = join_by(linhas == linhas,coluna == coluna)) %>%
-  mutate(coluna = as.factor(coluna),
-         tratamento = as.factor(tratamento))
+#Boxplot
+
+boxplot(dados_padronizado$values ~ dados_padronizado$tratamento)
 
 #1.1) O modelo considerado e as hipoteses de interesse.
 
@@ -126,11 +126,11 @@ bartlett.test(dados_padronizado$residuo ~ dados_padronizado$tratamento)
 
 #pressuposto de modelo aditivo
 
-mod = lm(dados_padronizado$values ~ dados_padronizado$linhas + dados_padronizado$coluna)
+mod = lm(dados_padronizado$values ~ dados_padronizado$linhas + dados_padronizado$coluna + dados_padronizado$tratamento)
 
 ad = (predict(mod))^2
 
-admod = lm(dados_padronizado$values ~ dados_padronizado$linhas + dados_padronizado$coluna + ad)
+admod = lm(dados_padronizado$values ~ dados_padronizado$linhas + dados_padronizado$coluna + dados_padronizado$tratamento + ad)
 
 anova(mod,admod)
 # 1.4) Qual a proporção da variacao total explicada pelo modelo ajustado no item 1.2?

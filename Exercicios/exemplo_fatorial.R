@@ -1,27 +1,28 @@
-pacman::p_load(tidyverse,dplyr,tidyr)
+values <- c(-3,-1,-1,0,-1,1,0,1,0,2,1,1,2,6,3,5,5,7,4,6,7,10,9,11)
 
+n <- 2
+a<-3
+b<-2
+c<-2
 
-#montando o dataframe
-material = rep(c(1,2,3), each = 4)
-temp_15 = c(130,74,155,180,150,159,188,126,138,168,110,160)
-temp_70 = c(34,80,40,75,136,106,122,115,174,150,120,139)
-temp_125 = c(20,82,70,58,25,58,70,45,96,82,104,60)
+fatA<-factor(rep(c("10","12","14"),each=b*c*n))
+fatB<-factor(rep(rep(c("25","30"),each=c*n),a))
+fatC<-factor(rep(rep(c("200","250"),n),a*c))
 
-dados = data.frame(material,temp_15,temp_70,temp_125)
-
-#padronizando o data frame para analise
-
-dados_padronizado = dados %>%
-  pivot_longer(cols = c(temp_15,temp_70,temp_125), values_to = "values", names_to = "temperatura") %>%
-  mutate(material = as.factor(material),
-         interacao = interaction(material,temperatura)) 
+dados_padronizado <- data.frame(values,fatA,fatB,fatC) %>%
+  mutate(interacaoAB = interaction(fatA,fatB),
+         interacaoAC = interaction(fatA,fatC),
+         interacaoBC = interaction(fatB,fatC),
+         interacaoABC = interaction(fatA,fatB,fatC))
+                             
 
 #1.1) O modelo considerado e as hipoteses de interesse.
 
 #1.2) A tabela de analise de variancia e suas conclusoes.
 # quantidade de linhas, colunas e tratamentos sao todas iguais no caso é 5
-a = length(unique(dados_padronizado$material)) #fator A
-b = length(unique(dados_padronizado$temperatura)) #fator B
+a = length(unique(dados_padronizado$fatA)) #fator A
+b = length(unique(dados_padronizado$fatB)) #fator B
+c = length(unique(dados_padronizado$fatC)) #fator C
 rep = 4
 
 N <- length(dados_padronizado$values) # total sample size
@@ -31,9 +32,12 @@ n <- length(dados_padronizado$values) / a # number of samples per group (since s
 media_total <- mean(dados_padronizado$values)
 
 ssqtot = sum((dados_padronizado$values - media_total)^2)
-ssqA = sum((tapply(dados_padronizado$values,dados_padronizado$material,mean) - media_total)^2)*b*rep
-ssqB = sum((tapply(dados_padronizado$values,dados_padronizado$temperatura,mean) - media_total)^2)*a*rep
-ssqsub = sum((tapply(dados_padronizado$values,dados_padronizado$interacao,mean) - media_total)^2)*rep
+ssqA = sum((tapply(dados_padronizado$values,dados_padronizado$fatA,mean) - media_total)^2)*b*rep
+ssqB = sum((tapply(dados_padronizado$values,dados_padronizado$fatB,mean) - media_total)^2)*a*rep
+ssqC = sum((tapply(dados_padronizado$values,dados_padronizado$fatC,mean) - media_total)^2)*c*rep
+ssqsub = sum((tapply(dados_padronizado$values,dados_padronizado$interacaoAB,mean) - media_total)^2)*rep
+ssqAB = ssqsub - (ssqA + ssqB)
+ssqsub = sum((tapply(dados_padronizado$values,dados_padronizado$interacaoAB,mean) - media_total)^2)*rep
 ssqAB = ssqsub - (ssqA + ssqB)
 ssqres = ssqtot-(ssqA+ssqB+ssqAB)
 
@@ -91,14 +95,14 @@ factA_media = tapply(dados_padronizado$values,dados_padronizado$material,mean) -
 
 factB_media = tapply(dados_padronizado$values,dados_padronizado$temperatura,mean) - media_total
 
-factAB_media = tapply(dados_padronizado$values,dados_padronizado$interacao,mean) - rep(tapply(dados_padronizado$values,dados_padronizado$material,mean),3) - rep(tapply(dados_padronizado$values,dados_padronizado$temperatura,mean),each = 3) + media_total
+factAB_media = tapply(dados_padronizado$values,dados_padronizado$interacao,mean) - media_total
 
 
 #calculando os residuos
 dados_padronizado = dados_padronizado %>% 
   mutate(media_fatorA = ave(values, material, FUN = mean) - mean(values),
          media_fatorB = ave(values, temperatura, FUN = mean) - mean(values),
-         media_fatorAB = ave(values, interacao, FUN = mean) - ave(values, temperatura, FUN = mean) - ave(values, material, FUN = mean) + mean(values),
+         media_fatorAB = ave(values, interacao, FUN = mean) - mean(values),
          y_obs = mean(values) + media_fatorA + media_fatorB + media_fatorAB,
          residuo = values - y_obs,
          residuo_normalizado = residuo/qmres)
@@ -160,9 +164,26 @@ aov_res = aov(dados_padronizado$values ~ dados_padronizado$material + dados_padr
 
 aov_res %>% summary()
 
+aov_res2 = aov(dados_padronizado$values ~ dados_padronizado$material + dados_padronizado$temperatura)
+
+aov_res2 %>% summary()
 #teste de tukey no R
 
 TukeyHSD(aov_res)
 
+# Tamanho da amostra erro tipo II
 
+ncpA = b*rep*sum(factA_media^2/qmres)
+ncpB = n*rep*sum(factB_media^2/qmres)
+ncpAB = rep*sum(factAB_media^2/qmres)
 
+b = 8
+
+delta = b*sum(taui^2/sigma2)
+
+fcrit = qf(1-alpha,t-1,(t-1)*(b-1))
+
+beta = pf(q = fcrit,df1 = t-1,df2 = (t-1)*(b-1), ncp = delta)
+
+poder = 1 - beta
+poder
