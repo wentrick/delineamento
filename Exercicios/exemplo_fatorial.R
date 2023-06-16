@@ -173,17 +173,38 @@ TukeyHSD(aov_res)
 
 # Tamanho da amostra erro tipo II
 
+#parametros de nao centralidade
+
 ncpA = b*rep*sum(factA_media^2/qmres)
 ncpB = n*rep*sum(factB_media^2/qmres)
 ncpAB = rep*sum(factAB_media^2/qmres)
 
 b = 8
 
-delta = b*sum(taui^2/sigma2)
+# Fator A
 
-fcrit = qf(1-alpha,t-1,(t-1)*(b-1))
+fcrit = qf(1-alpha,gla,glr)
 
-beta = pf(q = fcrit,df1 = t-1,df2 = (t-1)*(b-1), ncp = delta)
+beta = pf(q = fcrit,df1 = gla,df2 = glr, ncp = ncpA)
 
 poder = 1 - beta
 poder
+
+# Fator B
+
+fcrit = qf(1-alpha,glb,glr)
+
+beta = pf(q = fcrit,df1 = glb,df2 = glr, ncp = ncpB)
+
+poder = 1 - beta
+poder
+
+# Fator C
+
+fcrit = qf(1-alpha,glab,glr)
+
+beta = pf(q = fcrit,df1 = glab,df2 = glr, ncp = ncpAB)
+
+poder = 1 - beta
+poder
+

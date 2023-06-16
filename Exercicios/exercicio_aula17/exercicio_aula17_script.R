@@ -156,7 +156,7 @@ diferencas #estamos fazendo o teste de tukey em relação ao fator A, o R por pa
 
 # anova no r para compara os valores
 
-aov_res = aov(dados_padronizado$values ~ dados_padronizado$material + dados_padronizado$temperatura + dados_padronizado$interação)
+aov_res = aov(dados_padronizado$values ~ dados_padronizado$material + dados_padronizado$temperatura + dados_padronizado$interacao)
 
 aov_res %>% summary()
 
@@ -164,5 +164,40 @@ aov_res %>% summary()
 
 TukeyHSD(aov_res)
 
+# Tamanho da amostra erro tipo II
 
+#parametros de nao centralidade
+
+ncpA = b*rep*sum(factA_media^2/qmres)
+ncpB = n*rep*sum(factB_media^2/qmres)
+ncpAB = rep*sum(factAB_media^2/qmres)
+
+b = 8
+
+# Fator A
+
+fcrit = qf(1-alpha,gla,glr)
+
+beta = pf(q = fcrit,df1 = gla,df2 = glr, ncp = ncpA)
+
+poder = 1 - beta
+poder
+
+# Fator B
+
+fcrit = qf(1-alpha,glb,glr)
+
+beta = pf(q = fcrit,df1 = glb,df2 = glr, ncp = ncpB)
+
+poder = 1 - beta
+poder
+
+# Fator C
+
+fcrit = qf(1-alpha,glab,glr)
+
+beta = pf(q = fcrit,df1 = glab,df2 = glr, ncp = ncpAB)
+
+poder = 1 - beta
+poder
 
