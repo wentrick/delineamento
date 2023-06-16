@@ -1,0 +1,219 @@
+---
+title: "Demonstracoes"
+author: "Davi Wentrick Feijó"
+date: "2023-06-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Quadrado Latino
+
+$$
+Y_{ijk} = \mu + \alpha_i + \tau_j + \beta_k + \varepsilon_{ijk}
+$$
+
+#### Estimadores
+
+Vamos demosntrar como chegamos a esses resultados
+
+* $\hat\mu$ é o estimador da média geral
+  + $\hat\mu = \bar{Y}_{...} = \frac{Y_{...}}{N}$
+* $\hat\alpha_i$ é o estimador do efeito das i linhas 
+  + $\hat\alpha_i = \bar{Y}_{i..} - \bar{Y}_{...}$
+* $\hat\tau_j$ é o estimador do efeito dos j tratamentos
+  + $\hat\tau_j = \bar{Y}_{.j.} - \bar{Y}_{...}$
+* $\hat\beta_k$ é o estimador do efeito das k colunas
+  + $\hat\beta_k = \bar{Y}_{..k} - \bar{Y}_{...}$
+
+$$
+L =  \sum_i\sum_j\sum_k e_{ijk}^2 =\sum_i\sum_j\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k)^2
+$$
+
+Restricoes:
+
+$$
+\sum_i\hat\alpha_i = \sum_j\hat\tau_j = \sum_k \hat\beta_k = 0
+$$
+
+##### $\hat\mu$
+
+$$
+\frac{\partial L}{\partial \mu} = \sum_i\sum_j\sum_k e_{ijk}^2 =\sum_i\sum_j\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k)^2 = 0
+$$
+$$
+\sum_i\sum_j\sum_k 2(Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k)' = 0
+$$
+$$
+2\sum_i\sum_j\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) (-1) = 0
+$$
+$$
+-2\sum_i\sum_j\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) = 0
+$$
+$$
+ \sum_i\sum_j\sum_k Y_{ijk} - \sum_i\sum_j\sum_k \mu - \sum_i\sum_j\sum_k \alpha_i - \sum_i\sum_j\sum_k \tau_j - \sum_i\sum_j\sum_k \beta_k = 0
+$$
+$$
+ \sum_i\sum_j\sum_k Y_{ijk} - p^3 \hat\mu - p^2 \sum_i\alpha_i - p^2\sum_j \tau_j - p^2\sum_k \beta_k = 0
+$$
+
+$$
+ \sum_i\sum_j\sum_k Y_{ijk} - p^3 \hat\mu = 0
+$$
+Vale lembrar que $N = p^2$ e $\sum_j\sum_k Y_{ijk} = Y_{i..}$
+
+$$
+ Y_{...} - N \hat\mu = 0 
+$$
+$$
+ \hat\mu = \frac{Y_{...}}{N} = \bar{Y}_{...}
+$$
+
+##### $\hat\alpha_i$
+
+$$
+\frac{\partial L}{\partial \alpha_i} = \sum_j\sum_k e_{ijk}^2 =\sum_j\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k)^2 = 0
+$$
+$$
+\sum_j\sum_k 2(Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) (Y_{jk} - \mu - \alpha_i - \tau_j - \beta_k)' = 0
+$$
+$$
+2\sum_j\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) (-1) = 0
+$$
+$$
+-2\sum_j\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) = 0
+$$
+$$
+ \sum_j\sum_k Y_{ijk} - \sum_j\sum_k \mu - \sum_j\sum_k \alpha_i - \sum_j\sum_k \tau_j - \sum_j\sum_k \beta_k = 0
+$$
+$$
+\sum_j\sum_k Y_{ijk} - p^2 \hat\mu - p^2 \alpha_i - p \sum_j \tau_j - p \sum_k \beta_k = 0
+$$
+
+$$
+\sum_j\sum_k Y_{ijk} - p^2 \hat\mu - p^2 \alpha_i = 0
+$$
+
+Vale lembrar que $N = p^2$ e $\sum_j\sum_k Y_{ijk} = Y_{i..}$
+
+$$
+Y_{i..} - p^2 \hat\mu - p^2 \alpha_i = 0
+$$
+$$
+ p^2 \alpha_i = - Y_{i..} + p^2 \hat\mu 
+$$
+$$
+\hat\alpha_i = \frac{Y_{i..}}{p^2} - \frac{p^2\hat\mu}{p^2}
+$$
+
+
+$$
+\hat\alpha_i = \frac{Y_{i..}}{p^2} - \hat\mu
+$$
+
+$$
+\hat\alpha_i = \bar{Y}_{i..} - \hat\mu}
+$$
+
+##### $\hat\tau_j$
+
+$$
+\frac{\partial L}{\partial \tau_j} = \sum_i\sum_k e_{ijk}^2 =\sum_i\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k)^2 = 0
+$$
+$$
+\sum_i\sum_k 2(Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) (Y_{jk} - \mu - \alpha_i - \tau_j - \beta_k)' = 0
+$$
+$$
+2\sum_i\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) (-1) = 0
+$$
+$$
+-2\sum_i\sum_k (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) = 0
+$$
+$$
+ \sum_i\sum_k Y_{ijk} - \sum_i\sum_k \mu - \sum_i\sum_k \alpha_i - \sum_i\sum_k \tau_j - \sum_i\sum_k \beta_k = 0
+$$
+$$
+\sum_i\sum_k Y_{ijk} - p^2 \hat\mu - p \sum_i\alpha_i - p^2 \tau_j - p \sum_k \beta_k = 0
+$$
+
+$$
+\sum_i\sum_k Y_{ijk} - p^2 \hat\mu  - p^2 \tau_j  = 0
+$$
+
+Vale lembrar que $N = p^2$ e $\sum_i\sum_k Y_{ijk} = Y_{.j.}$
+
+$$
+Y_{.j.} - p^2 \hat\mu - p^2 \tau_j = 0
+$$
+$$
+ p^2 \tau_j = - Y_{.j.} + p^2 \hat\mu 
+$$
+
+$$
+\hat\tau_j = \frac{Y_{.j.}}{p^2} - \frac{p^2\hat\mu}{p^2}
+$$
+
+
+$$
+\hat\tau_j = \frac{Y_{.j.}}{p^2} - \hat\mu
+$$
+
+$$
+\hat\tau_j = \bar{Y}_{.j.} - \hat\mu
+$$
+
+
+##### $\hat\beta_k$
+
+$$
+\frac{\partial L}{\partial \beta_k} = \sum_i\sum_j e_{ijk}^2 =\sum_i\sum_j (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k)^2 = 0
+$$
+$$
+\sum_i\sum_j 2(Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) (Y_{jk} - \mu - \alpha_i - \tau_j - \beta_k)' = 0
+$$
+$$
+2\sum_i\sum_j (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) (-1) = 0
+$$
+$$
+-2\sum_i\sum_j (Y_{ijk} - \mu - \alpha_i - \tau_j - \beta_k) = 0
+$$
+$$
+ \sum_i\sum_j Y_{ijk} - \sum_i\sum_j \mu - \sum_i\sum_j \alpha_i - \sum_i\sum_j \tau_j - \sum_i\sum_j \beta_k = 0
+$$
+$$
+\sum_i\sum_k Y_{ijk} - p^2 \hat\mu - p \sum_i\alpha_i - p \sum_j \tau_j -  p^2\beta_k = 0
+$$
+
+$$
+\sum_i\sum_j Y_{ijk} - p^2 \hat\mu  - p^2\beta_k  = 0
+$$
+
+Vale lembrar que $N = p^2$ e $\sum_i\sum_j Y_{ijk} = Y_{..k}$
+
+$$
+Y_{.j.} - p^2 \hat\mu - p^2\beta_k = 0
+$$
+$$
+p^2\beta_k = - Y_{..k} + p^2 \hat\mu 
+$$
+
+$$
+\hat\beta_k = \frac{Y_{..k}}{p^2} - \frac{p^2\hat\mu}{p^2}
+$$
+
+
+$$
+\hat\beta_k = \frac{Y_{..k}}{p^2} - \hat\mu
+$$
+
+$$
+\hat\beta_k = \bar{Y}_{..k} - \hat\mu
+$$
+
+### Fatorial
+
+#### Estimadores
+
+#### Parametro de Nao centralidade

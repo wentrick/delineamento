@@ -220,6 +220,18 @@ anova_table
 
 #### 1.3) Os pressupostos necessarios foram atendidos ?
 
+Para verificar todos os pressupostos temos que caluclar os reisduos do modelo. Para isso vamos precisar estimar:
+
+* $\hat\mu$ é o estimador da média geral
+  + $\hat\mu = \bar{Y}_{...} = \frac{Y_{...}}{N}$
+* $\hat\alpha_i$ é o estimador do efeito das i linhas 
+  + $\hat\alpha_i = \bar{Y}_{i..} - \bar{Y}_{...}$
+* $\hat\tau_j$ é o estimador do efeito dos j tratamentos
+  + $\hat\tau_j = \bar{Y}_{.j.} - \bar{Y}_{...}$
+* $\hat\beta_k$ é o estimador do efeito das k colunas
+  + $\hat\beta_k = \bar{Y}_{..k} - \bar{Y}_{...}$
+
+
 ```{r}
 #nossos estimadores
 media_total = mean(dados_padronizado$values)
@@ -231,23 +243,51 @@ linhas_media = tapply(dados_padronizado$values,dados_padronizado$linhas,mean) - 
 coluna_media = tapply(dados_padronizado$values,dados_padronizado$coluna,mean) - media_total
 ```
 
+Os residuos podem ser calulados fazendo a diferenca dos valores observados pelos valores esperados da seguinte forma:
+
+$$
+e_{ijk} = Y_{ijk} - \hat{Y}_{ijk}
+$$
+onde o calculo dos nossos valores esperados é:
+
+$$
+\hat{Y}_{ijk} = \hat\mu + \hat\alpha_i + \hat\tau_j + \hat\beta_k
+$$
 
 ```{r}
 #calculando os residuos
 dados_padronizado = dados_padronizado %>% 
-  mutate(media_linha = ave(values, linhas, FUN = mean) - mean(values),
-         media_coluna = ave(values, coluna, FUN = mean) - mean(values),
-         media_trat = ave(values, tratamento, FUN = mean) - mean(values),
-         y_obs = mean(values) + media_trat + media_linha+media_coluna,
-         residuo = values - y_obs,
-         residuo_normalizado = residuo/qmres)
+  mutate(media_linha = ave(values, linhas, FUN = mean) - mean(values), #estimador linha
+         media_coluna = ave(values, coluna, FUN = mean) - mean(values), #estimador coluna
+         media_trat = ave(values, tratamento, FUN = mean) - mean(values), #estimador tratamento
+         y_obs = mean(values) + media_trat + media_linha + media_coluna, #valor esperado pelo modelo
+         residuo = values - y_obs, #residuos
+         residuo_normalizado = residuo/qmres) #residuo padronizado
+```
 
+```{r echo=FALSE}
+dados_padronizado
+```
+
+
+##### Normalidade
+```{r}
 shapiro.test(dados_padronizado$residuo)
+```
 
+##### Independencia
+
+```{r}
+plot(dados_padronizado$residuo)
+```
+
+##### Igualdade de Variancia (Homocedasticidade)
+```{r}
 bartlett.test(dados_padronizado$residuo ~ dados_padronizado$linhas)
+```
 
-#pressuposto de modelo aditivo
-
+##### Aditividade
+```{r}
 mod = lm(dados_padronizado$values ~ dados_padronizado$linhas + dados_padronizado$coluna + dados_padronizado$tratamento)
 
 ad = (predict(mod))^2
@@ -255,19 +295,34 @@ ad = (predict(mod))^2
 admod = lm(dados_padronizado$values ~ dados_padronizado$linhas + dados_padronizado$coluna + dados_padronizado$tratamento + ad)
 
 anova(mod,admod)
-# 1.4) Qual a proporção da variacao total explicada pelo modelo ajustado no item 1.2?
+```
 
+#### 1.4) Qual a proporção da variacao total explicada pelo modelo ajustado no item 1.2?
+
+Pode ser calculado de 2 formas:
+
+$$
+R^2 = \frac{SQ_{Tratamento}+SQ_{Linha}+SQ_{Coluna}}{SQ_{Total}}
+$$
+
+$$
+R^2 = 1 - \frac{SQ_{Residuos}}{SQ_{Total}}
+$$
+
+```{r}
 R2 = 1 - (ssqres/ssqtot)
 
-cat("A variancia explicada pelo medole é", R2)
-
 R2 = ((ssqtrat+ssqcol+ssqlinha)/ssqtot)
+```
 
+
+```{r echo=FALSE}
 cat("A variancia explicada pelo medole é", R2)
+```
 
-# 1.5) Considerando que o objetivo do experimento ´e m´aximizar a vari´avel resposta, 
-# qual ´e o elemento quımico que deve ser recomendado? Use teste de Tukey para subsidiar sua resposta.
+#### 1.5) Considerando que o objetivo do experimento é máximizar a variável resposta, qual é o elemento quımico que deve ser recomendado? Use teste de Tukey para subsidiar sua resposta.
 
+```{r}
 alfa = 0.05
 
 q.value <- qtukey(alfa, p, glr, lower.tail = F)
@@ -286,13 +341,15 @@ diferencas <- data.frame(
          upr = diferenca + q.value * sqrt(qmres/p),
          pvalor = round(ptukey(abs(diferenca/(sqrt(qmres/p))), p, glr, lower.tail = F),6),
          hsd = abs(diferenca) >= hsd)
+```
 
+
+```{r echo=FALSE}
 diferencas
+```
 
-# 1.6) Refa¸ca as contas necessarias para responder os itens (1.2), (1.3) e (1.6) utilizando as funcoes
-#aov e TukeyHSD e confira com os resultados obtidos.
-
-
+#### 1.6) Refaca as contas necessarias para responder os itens (1.2), (1.3) e (1.6) utilizando as funcoes aov() e TukeyHSD() e confira com os resultados obtidos.
+```{r}
 # anova no r para compara os valores
 
 aov_res = aov(dados_padronizado$values ~ dados_padronizado$tratamento + dados_padronizado$linhas + dados_padronizado$coluna)
@@ -303,4 +360,45 @@ aov_res %>% summary()
 
 TukeyHSD(aov_res)
 ```
+
+#### EXTRA: Cálculo do erro do tipo 2:
+
+Para calcular o erro do tipo 2 temos que saber qual distribuicao $F_0$ segue, quando $H0$ for falsa $F_0$ tem a seguinte distribuicao F nao central:
+
+$$
+F_0 = \frac{QM_{Tratamento}}{QM_{Residuo}} \sim F(p-1,(p-2)(p-1),\delta)
+$$
+
+onde $\delta$ é o parametro de nao centralidade, que pode ser calculado da seguinte forma:
+
+
+$$
+\delta = E[\frac{SQ_{Tratamento}}{\sigma^2}] = p \frac{\sum_{j=1}^p \tau_j^2}{\sigma^2}
+$$
+```{r}
+# Tamanho da amostra erro tipo II
+alpha = 0.05
+taui = c(21,-32,140,-55,-64) #os taui devem ser dados (inventei uns valores para serem testados)
+qmres = qmres #pode ser especificado tambem ou estar diponivel para ser utilizado o que foi calculado
+delta = p*sum(taui^2/qmres)
+
+fcrit = qf(1-alpha,p-1,(p-2)*(p-1))
+
+beta = pf(q = fcrit,df1 = p-1,df2 = (p-2)*(p-1), ncp = delta)
+
+poder = 1 - beta
+```
+
+
+```{r echo=FALSE}
+cat("O erro do tipo 2 (Beta) é:",beta)
+cat("O poder do teste é:",poder)
+```
+
+
+
+
+
+
+
 
