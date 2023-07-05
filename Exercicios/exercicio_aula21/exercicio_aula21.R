@@ -15,71 +15,76 @@ dados = data.frame(operators,filter_type,low,medium,high)
 dados_padronizado = dados %>%
   pivot_longer(cols = c(low,medium,high), values_to = "values", names_to = "nivel") %>%
   mutate(material = as.factor(nivel),
+         operators = as.factor(operators),
          interacao = interaction(nivel,filter_type)) 
 
 #1.1) O modelo considerado e as hipoteses de interesse.
 
 #1.2) A tabela de analise de variancia e suas conclusoes.
 # quantidade de linhas, colunas e tratamentos sao todas iguais no caso é 5
-t = length(unique(dados_padronizado$nivel)) #fator A
-b = length(unique(dados_padronizado$operators)) #blocos
-f = length(unique(dados_padronizado$filter_type)) # Fator b
-N <- t*b*f # total sample size
-n <- length(dados_padronizado$values)/t # number of samples per group (since sizes are equal)
-rep = b
+a = length(unique(dados_padronizado$filter_type)) #fator A
+bloco = length(unique(dados_padronizado$operators)) #blocos
+b = length(unique(dados_padronizado$nivel)) # Fator b
+N <- a*bloco*b # total sample size
+n <- length(dados_padronizado$values)/a # number of samples per group (since sizes are equal)
+rep = bloco
 
 
 #soma de quadrados
 media_total <- mean(dados_padronizado$values)
 
-ssqtot = sum((dados_padronizado$values - media_total)^2)
-ssqA = sum((tapply(dados_padronizado$values,dados_padronizado$material,mean) - media_total)^2)*b*rep
-ssqB = sum((tapply(dados_padronizado$values,dados_padronizado$temperatura,mean) - media_total)^2)*a*rep
+ssqtot = sum((dados_padronizado$values - media_total)^2) #total
+ssqA = sum((tapply(dados_padronizado$values,dados_padronizado$filter_type,mean) - media_total)^2)*b*rep #fator A
+ssqB = sum((tapply(dados_padronizado$values,dados_padronizado$nivel,mean) - media_total)^2)*a*rep #fator B
 ssqsub = sum((tapply(dados_padronizado$values,dados_padronizado$interacao,mean) - media_total)^2)*rep
-ssqAB = ssqsub - (ssqA + ssqB)
-ssqres = ssqtot-(ssqA+ssqB+ssqAB)
+ssqAB = ssqsub - (ssqA + ssqB) #interação
+ssqbloco = sum((tapply(dados_padronizado$values,dados_padronizado$operators,mean) - media_total)^2)*b*a #blocos
+
+ssqres = ssqtot-(ssqA+ssqB+ssqAB+ssqbloco)
 
 
 #graus de liberdade
-
 gla = (a-1)
 glb = (b-1)
 glbloco = (n-1)
 glab = (a-1)*(b-1)
 gltot = a*b*rep - 1
 glr = a*b*(rep-1)
-#quadrados medios
 
+#quadrados medios
 qmA = ssqA/gla
 qmB = ssqB/glb
 qmAB = ssqAB/glab
+qmbloco = ssqbloco/glbloco
 qmres = ssqres/glr
 
 # valor F observado
-
 f_obs_A = qmA/qmres
 f_obs_B = qmB/qmres
 f_obs_AB = qmAB/qmres
+f_obs_bloco = qmbloco/qmres
 
 #valor critico de 5%
 alfa = 0.05
 f_crit_A = qf(alfa,gla,glr)
 f_crit_B = qf(alfa,glb,glr)
 f_crit_AB = qf(alfa,glab,glr)
+f_crit_bloco = qf(alfa,glbloco,glr)
+
 #p-valor observado
 
 f_value_A = round(pf(f_obs_A,gla,glr,lower.tail = FALSE),3)
-
 f_value_B = round(pf(f_obs_B,glb,glr,lower.tail = FALSE),7)
 f_value_AB = round(pf(f_obs_AB,glab,glr,lower.tail = FALSE),7)
+f_value_bloco = round(pf(f_obs_bloco,glbloco,glr,lower.tail = FALSE),7)
 
 # Tabela da ANOVA
-anova_table <- data.frame(Fonte_de_variacao = c("Fator A", "Fator B", "Interação","Residuos", "Total"),
-                          GL = c(gla,glb ,glab, glr, gltot),
-                          SS = c(ssqA,ssqB ,ssqAB, ssqres, ssqtot),
-                          MQ = c(round(qmA,2),round(qmB,2) ,round(qmAB,2), round(qmres,2), ''),
-                          F = c(round(f_obs_A,3),round(f_obs_B,3),round(f_obs_AB,3),'',''),
-                          Pf = c(f_value_A, f_value_B,f_value_AB, "", ''),
+anova_table <- data.frame(Fonte_de_variacao = c("Fator A", "Fator B", "Interação","Blocos","Residuos", "Total"),
+                          GL = c(gla,glb ,glab,glbloco, glr, gltot),
+                          SS = c(ssqA,ssqB ,ssqAB,ssqbloco, ssqres, ssqtot),
+                          MQ = c(round(qmA,2),round(qmB,2) ,round(qmAB,2),round(qmbloco,2), round(qmres,2), ''),
+                          F = c(round(f_obs_A,3),round(f_obs_B,3),round(f_obs_AB,3),round(f_obs_bloco,3),'',''),
+                          Pf = c(f_value_A, f_value_B,f_value_AB, f_value_bloco, '',''),
                           stringsAsFactors = FALSE)
 rownames(anova_table) <- NULL
 
@@ -159,7 +164,7 @@ diferencas #estamos fazendo o teste de tukey em relação ao fator A, o R por pa
 
 # anova no r para compara os valores
 
-aov_res = aov(dados_padronizado$values ~ dados_padronizado$material + dados_padronizado$temperatura + dados_padronizado$interacao)
+aov_res = aov(dados_padronizado$values ~ dados_padronizado$filter_type + dados_padronizado$nivel + dados_padronizado$filter_type*dados_padronizado$nivel + dados_padronizado$operators)
 
 aov_res %>% summary()
 
