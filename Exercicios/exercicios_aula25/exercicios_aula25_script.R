@@ -135,6 +135,50 @@ modelo = aov(values ~ A*B*C, data = dados_padronizado)
 summary(modelo)
 
 
+# Os pressupostos necessarios foram atendidos ?
+
+#nossos estimadores
+media_total = mean(dados_padronizado$values)
 
 
+
+
+
+
+#calculando os residuos
+dados_padronizado = dados_padronizado %>% 
+  mutate(media_linha = ave(values, linhas, FUN = mean) - mean(values),
+         media_coluna = ave(values, coluna, FUN = mean) - mean(values),
+         media_trat = ave(values, tratamento, FUN = mean) - mean(values),
+         y_obs = mean(values) + media_trat + media_linha+media_coluna,
+         residuo = values - y_obs,
+         residuo_normalizado = residuo/qmres)
+
+shapiro.test(dados_padronizado$residuo)
+
+bartlett.test(dados_padronizado$residuo ~ dados_padronizado$linhas)
+
+
+#teste de tukey
+
+alfa = 0.05
+
+q.value <- qtukey(alfa, n, glr, lower.tail = F)
+
+hsd = q.value * sqrt(qmres/n)
+
+trat = sort(unique(dados_padronizado$tratamento)) #meus tratamentos ordenados
+
+combinacoes <- combn(trat, 2, simplify = FALSE)  # todas as combinações possíveis de 2 a 2
+comb_diff = combn(trat_media,2)
+
+diferencas <- data.frame(
+  comparacao = sapply(combinacoes, paste0, collapse = "-") ,
+  diferenca = apply(comb_diff, 2, diff)) %>%
+  mutate(lwr = diferenca - q.value * sqrt(qmres/n),
+         upr = diferenca + q.value * sqrt(qmres/n),
+         pvalor = round(ptukey(abs(diferenca/(sqrt(qmres/n))), n, glr, lower.tail = F),6),
+         hsd = abs(diferenca) >= hsd)
+
+diferencas
 
