@@ -129,8 +129,8 @@ cat("A soma de quadrados de AB é:",SQAB)
 cat("A soma de quadrados de AC é:",SQAC)
 cat("A soma de quadrados de BC é:",SQBC)
 cat("A soma de quadrados de ABC é:",SQABC)
-cat("A soma de quadrados do residuo é:",SQBC)
-cat("A soma de quadrados total é:",SQABC)
+cat("A soma de quadrados do residuo é:",SQres)
+cat("A soma de quadrados total é:",SQtot)
 ```
 
 

@@ -1,5 +1,29 @@
-pacman::p_load(tidyverse,dplyr,tidyr)
+---
+title: "Exercicio Aula 23"
+author: "Davi Wentrick Feijó - 200016806"
+date: "2023-07-11"
+output: 
+  rmdformats::downcute:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: true
+    highlight: tango
+    toc_depth : 4
+  html_document:
+    toc: false
+    toc_depth: 5
+    toc_float: true
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(tidyverse,dplyr,tidyr)
+```
+
+## Montando a base de dados para analise
+
+```{r}
 # Vetores com os fatores
 fatorA <- c("A baixo", "A alto")
 fatorB <- c("B baixo", "B alto")
@@ -14,7 +38,17 @@ rep_3 = c(27,32,23,29)
 
 dados = data.frame(matriz_combinacoes,rep_1,rep_2,rep_3) %>%
   mutate(total = rep_1 + rep_2 + rep_3)
+```
 
+```{r echo=FALSE}
+dados
+```
+
+## Calcule asseguintes somas de quadrados: SQA, SQB , SQAB , SQT e SQRes .
+
+Vamos calcular os efeitos
+
+```{r}
 n = 3 #numero de repeticoes
 
 #calculando os efeitos
@@ -35,11 +69,16 @@ B = contrasteB/(4*n)
 AB = contrasteAB/(4*n)
 
 #formatando o banco para futuras analises
+```
 
+Em seguida podemos formatar nosso banco para o formato long
+```{r}
 dados_padronizado = dados %>%
-  pivot_longer(cols = c(rep_1,rep_2,rep_3), values_to = "values", names_to = "rep") 
+  pivot_longer(cols = c(rep_1,rep_2,rep_3), values_to = "values", names_to = "rep")
+```
 
-
+Agora podemos calcular nossas respectivas somas de quadrados
+```{r}
 #soma de quadrados
 
 SQA = (contrasteA^2)/(4*n)
@@ -47,7 +86,19 @@ SQB = (contrasteB^2)/(4*n)
 SQAB = (contrasteAB^2)/(4*n)
 SQtot = sum((dados_padronizado$values - mean(dados_padronizado$values))^2)
 SQres = SQtot - (SQA+SQB+SQAB)
+```
 
+```{r echo=FALSE}
+cat("A soma de quadrados de A e:",SQA)
+cat("A soma de quadrados de B e:",SQB)
+cat("A soma de quadrados de AB e:",SQAB)
+cat("A soma de quadrados do residuo e:",SQres)
+cat("A soma de quadrados total e:",SQtot)
+```
+
+## Os respectivos graus de liberdade
+
+```{r}
 #graus de liberdade
 a = length(unique(dados_padronizado$A))
 b = length(unique(dados_padronizado$B))
@@ -58,6 +109,21 @@ glB <- b - 1
 glAB <- (a-1)*(b-1)
 glRES <- a*b*(r-1)
 glTOT = (4*n-1)
+```
+
+```{r echo=FALSE}
+cat("Os graus de liberdade de A e:",glA)
+cat("Os graus de liberdade de B e:",glB)
+cat("Os graus de liberdade de AB e:",glAB)
+cat("Os graus de liberdade dos residuos e:",glRES)
+cat("Os graus de liberdade total e:",glTOT)
+```
+
+
+
+## Construa a Tabela ANOVA
+
+```{r}
 #quadrados medios
 
 qmA = SQA/glA
@@ -77,7 +143,10 @@ f_obs_AB = qmAB/qmres
 f_value_A = round(pf(f_obs_A,glA,glRES,lower.tail = FALSE),7)
 f_value_B = round(pf(f_obs_B,glB,glRES,lower.tail = FALSE),7)
 f_value_AB = round(pf(f_obs_AB,glAB,glRES,lower.tail = FALSE),7)
+```
 
+
+```{r echo=FALSE}
 # Tabela da ANOVA
 anova_table <- data.frame(Fonte_de_variacao = c("Fator A", "Fator B", "A:B","Residuo","Total"),
                           GL = c(glA, glB, glAB, glRES, glTOT),
@@ -90,10 +159,16 @@ rownames(anova_table) <- NULL
 
 
 anova_table
+```
 
-
+Podemos comparar o resultado com a função `aov()` do R
+```{r}
 modelo = aov(values ~ A*B, data = dados_padronizado)
 summary(modelo)
+```
+
+
+## Interprete os resultados encontrados nos itens anteriores.
 
 
 
@@ -106,4 +181,3 @@ summary(modelo)
 
 
 
- 
