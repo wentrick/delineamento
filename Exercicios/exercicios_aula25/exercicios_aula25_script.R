@@ -122,8 +122,8 @@ anova_table <- data.frame(Fonte_de_variacao = c("Fator A", "Fator B", "Fator C",
                           GL = c(glA, glB, glC, glAB, glAC, glBC, glABC, glRES, glTOT),
                           SS = round(c(SQA, SQB, SQC, SQAB, SQAC, SQBC, SQABC, SQres, SQtot),1),
                           MQ = round(c(qmA, qmB, qmC, qmAB, qmAC, qmBC, qmABC, qmres,0),1),
-                          F = round(c(f_obs_A, f_obs_B, f_obs_C, f_obs_AB, f_obs_AC, f_obs_BC, f_obs_ABC,0,0),1),
-                          Pf = round(c(f_value_A, f_value_B, f_value_C, f_value_AB, f_value_AC, f_value_BC, f_value_ABC,0,0),1),
+                          F = round(c(f_obs_A, f_obs_B, f_obs_C, f_obs_AB, f_obs_AC, f_obs_BC, f_obs_ABC,0,0),3),
+                          Pf = round(c(f_value_A, f_value_B, f_value_C, f_value_AB, f_value_AC, f_value_BC, f_value_ABC,0,0),6),
                           stringsAsFactors = FALSE)
 rownames(anova_table) <- NULL
 
@@ -131,7 +131,7 @@ rownames(anova_table) <- NULL
 anova_table
 
 
-modelo = aov(values~A*B*C, data = dados_padronizado)
+modelo = aov(values ~ A*B*C, data = dados_padronizado)
 summary(modelo)
 
 
