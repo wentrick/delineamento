@@ -1,0 +1,287 @@
+---
+title: "Exercicio Aula 27"
+author: "Davi Wentrick Feijó - 200016806"
+date: "2023-07-13"
+output: 
+  rmdformats::downcute:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: true
+    highlight: tango
+    toc_depth : 4
+  html_document:
+    toc: false
+    toc_depth: 5
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(tidyverse,dplyr,tidyr,car,asbio,easyanova)
+```
+
+# Split-Plot
+
+## Modelo utilizado
+
+$$
+Y_{ijk} = \mu + \tau_i + \beta_j + (\tau\beta)_{ij} + \gamma_k + (\beta\gamma)_{jk} + \epsilon_{ijk}
+$$
+onde:
+
++ $\mu$ é a média
+
++ $\tau_i$ é o efeito da repetição (Bloco)
+
++ $\beta_j$ é o efeito do j-ésimo nivel do fator A
+
++ $(\tau\beta)_{ij}$ é o erro da parcela do fator A
+
++ $\gamma_k$ é o efeito do k-ésimo nivel do fator B
+
++ $(\beta\gamma)_{jk}$ é o efeito da interacao entre A e B
+
++ $\epsilon_{ijk}$ é o componente do erro aletorio
+
+## Dados do exercicio
+
+Vamos montar nossos dados para analise
+
+```{r}
+# Vetores com os fatores
+#fatorA <- rep(c("Aração", "Aração+Gradagem","Subsolagem"),each = 3)
+fatorA <- rep(c("Aração", "Aração+Gradagem","Subsolagem"),each = 3)
+fatorB = rep(c("A", "B","C"),3)
+# Gerar todas as combinações
+
+bloco_1 = c(4.2,4.5,5.2,3.8,3.7,3.5,4.2,4,3.9)
+bloco_2 = c(4.6,4.7,5,4.4,3.5,3.1,4.2,3.8,3.9)
+bloco_3 = c(4.5,4.3,6.8,4.8,3.1,3.4,5.2,3.7,3.7)
+bloco_4 = c(4.4,4.7,5.8,3.9,3.7,3.3,5.1,4.1,4)
+dados = data.frame(fatorA,fatorB,bloco_1,bloco_2,bloco_3,bloco_4) %>%
+  mutate(total = bloco_1 + bloco_2 + bloco_3 + bloco_4,
+         int_AB = interaction(fatorA,fatorB),
+         fatorA = as.factor(fatorA),
+         fatorB = as.factor(fatorB))
+```
+
+```{r echo=FALSE}
+dados
+```
+
+Vamos estar utilizando tambem os dados no formato long
+```{r}
+#banco de dados padronizado
+dados_padronizado = dados %>%
+  pivot_longer(cols = c(bloco_1,bloco_2,bloco_3,bloco_4), values_to = "values", names_to = "bloco") %>%
+  mutate(parcela = interaction(bloco,fatorA))
+```
+
+```{r echo=FALSE}
+dados_padronizado
+```
+
+
+## Faça a analise de variancia
+
+Para a anova vamos calcular manualmente pelo R e depois comparar o resultado com a função `aov()`
+
+
+```{r}
+n = 4 #numero de repeticoes = numero de blocos
+
+#niveis
+a = length(unique(dados_padronizado$fatorA))
+b = length(unique(dados_padronizado$fatorB))
+r = length(unique(dados_padronizado$bloco))
+```
+
+```{r}
+#soma de quadrados
+media_total = mean(dados_padronizado$values)
+
+ssqtot = sum((dados_padronizado$values - mean(dados_padronizado$values))^2)
+ssqA = sum((tapply(dados_padronizado$values,dados_padronizado$fatorA,mean) - media_total)^2)*r*b
+ssqB = sum((tapply(dados_padronizado$values,dados_padronizado$fatorB,mean) - media_total)^2)*r*a
+ssqbloco = sum((tapply(dados_padronizado$values,dados_padronizado$bloco,mean) - media_total)^2)*a*b
+ssqAB = sum((tapply(dados_padronizado$values,dados_padronizado$int_AB,mean) - media_total)^2)*r - ssqA - ssqB
+ssqparc = sum((tapply(dados_padronizado$values,dados_padronizado$parcela,mean) - media_total)^2)*b
+ssqresA = ssqparc - (ssqbloco+ssqA)
+ssqres = ssqtot - (ssqparc+ssqB+ssqAB)
+```
+
+
+```{r}
+#graus de liberdade
+glA = a-1
+glB = b-1
+glbloco = r-1
+glAB = (a-1)*(b-1)
+glparc = a*r-1
+glresA = (r-1)*(a-1)
+glres = a*(b-1)*(r-1) #verificar se esta certo
+gltot = a*b*n - 1
+```
+
+
+```{r}
+#quadrados medios
+qmA = ssqA/glA
+qmB = ssqB/glB
+qmbloco = ssqbloco/glbloco
+qmAB = ssqAB/glAB
+qmparc = ssqparc/glparc
+qmresA = ssqresA/glresA
+qmres = ssqres/glres
+```
+
+
+```{r}
+# valor F observado
+f_obs_A = qmA/qmresA #aqui é dividido pelo residuo de A
+f_obs_B = qmB/qmres
+f_obs_AB = qmAB/qmres
+```
+
+```{r}
+#p-valor observado
+f_value_A = round(pf(f_obs_A,glA,glresA,lower.tail = FALSE),7)
+f_value_B = round(pf(f_obs_B,glB,glres,lower.tail = FALSE),7)
+f_value_AB = round(pf(f_obs_AB,glAB,glres,lower.tail = FALSE),7)
+```
+
+
+```{r}
+# Tabela da ANOVA
+anova_table <- data.frame(Fonte_de_variacao = c("Bloco", "Fator A", "Residuo A", "Parcela", "Fator B", "A:B","Residuo","Total"),
+                          GL = c(glbloco, glA, glresA, glparc, glB, glAB, glres, gltot),
+                          SS = round(c(ssqbloco, ssqA, ssqresA, ssqparc, ssqB, ssqAB, ssqres, ssqtot),4),
+                          MQ = round(c(qmbloco, qmA, qmresA, NA, qmB, qmAB, qmres, NA),4),
+                          F = round(c(NA, f_obs_A, NA, NA, f_obs_B, f_obs_AB, NA,NA),3),
+                          Pf = round(c(NA, f_value_A, NA, NA, f_value_B, f_value_AB, NA,NA),7),
+                          stringsAsFactors = FALSE)
+rownames(anova_table) <- NULL
+
+
+anova_table
+```
+
+podemos comparar agora com o resultado obtido pelo função `aov()` do R
+```{r}
+modelo = aov(values~fatorA*fatorB + Error(bloco/fatorA),data = dados_padronizado)
+summary(modelo)
+```
+
+## Verifique os pressupostos do modelo
+
+Para obter os residuos do modelo, nao podemos usar o modelo gerado anteriormente, dentro do R aquele objeto nao retorna as variaveis comuns da ANOVA. Para resolver isso rodamos outro modelo que naos traz o mesmo resultado de residuos.
+
+```{r}
+modelo2 = aov(values~fatorA*fatorB + bloco:fatorA,data = dados_padronizado)
+summary(modelo2)
+```
+
+Agora podemos pegar os residuos e testar os pressupostos
+
+```{r}
+residuo = modelo2$residuals
+```
+
+### Normalidade
+
+```{r}
+qqnorm(residuo)
+qqline(residuo)
+```
+
+```{r}
+shapiro.test(residuo)
+```
+
+### Independencia
+
+```{r}
+plot(residuo)
+```
+
+### Homocedasticidade
+
+#### Teste para fator A
+Usando teste de Bartlett 
+```{r}
+bartlett.test(dados_padronizado$values,dados_padronizado$fatorA)
+```
+Usando Levene 
+
+```{r}
+leveneTest(values~fatorA, data = dados_padronizado)
+```
+#### Teste para fator B
+
+```{r}
+bartlett.test(dados_padronizado$values,dados_padronizado$fatorB)
+```
+
+```{r}
+leveneTest(values~fatorB, data = dados_padronizado)
+```
+#### interacção A:B
+
+```{r}
+bartlett.test(dados_padronizado$values,dados_padronizado$int_AB)
+```
+
+```{r}
+leveneTest(values ~ fatorA:fatorB, data = dados_padronizado)
+```
+### Aditividade
+
+Fator A
+```{r}
+tukey.add.test(dados_padronizado$values,dados_padronizado$fatorA,dados_padronizado$bloco)
+```
+Fator B
+
+```{r}
+tukey.add.test(dados_padronizado$values,dados_padronizado$fatorB,dados_padronizado$bloco)
+```
+
+Fator A:B (Interação)
+
+```{r}
+tukey.add.test(dados_padronizado$values,dados_padronizado$fatorB,dados_padronizado$bloco)
+```
+
+
+
+## Caso exista evidencias de diferenca de medias, realize o teste de Tukey
+
+Usando a função `TukeyHSD`
+```{r}
+TukeyHSD(modelo2)
+```
+
+
+Outra opção é usar a função `ea2` do pacote `easyanova`
+
+```{r}
+ea2(dados_padronizado[,c(1,5,2,6)],design=5)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
