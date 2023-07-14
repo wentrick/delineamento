@@ -1848,9 +1848,9 @@ Feijó - 200016806
 <div class="page-content has-page-title">
 <p>Montando o banco de dados que iremos analisar:</p>
 <pre class="r"><code># Vetores com os fatores
-fatorA &lt;- c(&quot;A baixo&quot;, &quot;A alto&quot;)
-fatorB &lt;- c(&quot;B baixo&quot;, &quot;B alto&quot;)
-fatorC &lt;- c(&quot;C baixo&quot;, &quot;C alto&quot;)
+fatorA &lt;- c(-1, 1)
+fatorB &lt;- c(-1, 1)
+fatorC &lt;- c(-1, 1)
 
 # Gerar todas as combinações
 matriz_combinacoes &lt;- expand.grid(fatorA, fatorB, fatorC)
@@ -1861,15 +1861,15 @@ rep_3 = c(25,29,50,46,38,36,54,47)
 
 dados = data.frame(matriz_combinacoes,rep_1,rep_2,rep_3) %&gt;%
   mutate(total = rep_1 + rep_2 + rep_3)</code></pre>
-<pre><code>##         A       B       C rep_1 rep_2 rep_3 total
-## 1 A baixo B baixo C baixo    22    31    25    78
-## 2  A alto B baixo C baixo    32    43    29   104
-## 3 A baixo  B alto C baixo    35    34    50   119
-## 4  A alto  B alto C baixo    55    47    46   148
-## 5 A baixo B baixo  C alto    44    45    38   127
-## 6  A alto B baixo  C alto    40    37    36   113
-## 7 A baixo  B alto  C alto    60    50    54   164
-## 8  A alto  B alto  C alto    39    41    47   127</code></pre>
+<pre><code>##    A  B  C rep_1 rep_2 rep_3 total
+## 1 -1 -1 -1    22    31    25    78
+## 2  1 -1 -1    32    43    29   104
+## 3 -1  1 -1    35    34    50   119
+## 4  1  1 -1    55    47    46   148
+## 5 -1 -1  1    44    45    38   127
+## 6  1 -1  1    40    37    36   113
+## 7 -1  1  1    60    50    54   164
+## 8  1  1  1    39    41    47   127</code></pre>
 <div id="estime-os-efeitos-dos-fatores.-quais-efeitos-parecem-ser-maiores" class="section level2">
 <h2>Estime os efeitos dos fatores. Quais efeitos parecem ser
 maiores?</h2>
@@ -1915,18 +1915,18 @@ formato long usando a função <code>pivot_longer()</code></p>
 <pre class="r"><code>dados_padronizado = dados %&gt;%
   pivot_longer(cols = c(rep_1,rep_2,rep_3), values_to = &quot;values&quot;, names_to = &quot;rep&quot;)</code></pre>
 <pre><code>## # A tibble: 24 × 6
-##    A       B       C       total rep   values
-##    &lt;fct&gt;   &lt;fct&gt;   &lt;fct&gt;   &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;
-##  1 A baixo B baixo C baixo    78 rep_1     22
-##  2 A baixo B baixo C baixo    78 rep_2     31
-##  3 A baixo B baixo C baixo    78 rep_3     25
-##  4 A alto  B baixo C baixo   104 rep_1     32
-##  5 A alto  B baixo C baixo   104 rep_2     43
-##  6 A alto  B baixo C baixo   104 rep_3     29
-##  7 A baixo B alto  C baixo   119 rep_1     35
-##  8 A baixo B alto  C baixo   119 rep_2     34
-##  9 A baixo B alto  C baixo   119 rep_3     50
-## 10 A alto  B alto  C baixo   148 rep_1     55
+##        A     B     C total rep   values
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;
+##  1    -1    -1    -1    78 rep_1     22
+##  2    -1    -1    -1    78 rep_2     31
+##  3    -1    -1    -1    78 rep_3     25
+##  4     1    -1    -1   104 rep_1     32
+##  5     1    -1    -1   104 rep_2     43
+##  6     1    -1    -1   104 rep_3     29
+##  7    -1     1    -1   119 rep_1     35
+##  8    -1     1    -1   119 rep_2     34
+##  9    -1     1    -1   119 rep_3     50
+## 10     1     1    -1   148 rep_1     55
 ## # ℹ 14 more rows</code></pre>
 </div>
 <div id="use-a-análise-de-variancia-para-confirmar-as-conclusõoes-obtidas-no-item-a." class="section level2">
@@ -2018,6 +2018,32 @@ summary(modelo)</code></pre>
 </div>
 <div id="apresente-um-modelo-de-regressao." class="section level2">
 <h2>Apresente um modelo de regressao.</h2>
+<pre class="r"><code>modelo = lm(values ~ A*B*C,data = dados_padronizado)
+summary(modelo)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = values ~ A * B * C, data = dados_padronizado)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -5.667 -3.500 -1.167  3.167 10.333 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  40.8333     1.1211  36.421  &lt; 2e-16 ***
+## A             0.1667     1.1211   0.149 0.883680    
+## B             5.6667     1.1211   5.054 0.000117 ***
+## C             3.4167     1.1211   3.048 0.007679 ** 
+## A:B          -0.8333     1.1211  -0.743 0.468078    
+## A:C          -4.4167     1.1211  -3.939 0.001172 ** 
+## B:C          -1.4167     1.1211  -1.264 0.224475    
+## A:B:C        -1.0833     1.1211  -0.966 0.348282    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 5.492 on 16 degrees of freedom
+## Multiple R-squared:  0.7696, Adjusted R-squared:  0.6689 
+## F-statistic: 7.637 on 7 and 16 DF,  p-value: 0.0003977</code></pre>
 </div>
 <div id="analise-os-resıduos.-existem-problemas" class="section level2">
 <h2>Analise os resıduos. Existem problemas?</h2>

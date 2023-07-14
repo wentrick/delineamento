@@ -20,7 +20,7 @@ output:
 ```{r setup, include=FALSE}
 ## Global options
 knitr::opts_chunk$set(cache = TRUE)
-pacman::p_load(tidyverse,dplyr,tidyr,xtable)
+pacman::p_load(tidyverse,dplyr,tidyr,xtable,car)
 ```
 
 
@@ -28,9 +28,9 @@ Montando o banco de dados que iremos analisar:
 
 ```{r}
 # Vetores com os fatores
-fatorA <- c("A baixo", "A alto")
-fatorB <- c("B baixo", "B alto")
-fatorC <- c("C baixo", "C alto")
+fatorA <- c(-1, 1)
+fatorB <- c(-1, 1)
+fatorC <- c(-1, 1)
 
 # Gerar todas as combinações
 matriz_combinacoes <- expand.grid(fatorA, fatorB, fatorC)
@@ -190,6 +190,15 @@ summary(modelo)
 
 ## Apresente um modelo de regressao.
 
+```{r}
+modelo = lm(values ~ A*B*C,data = dados_padronizado)
+summary(modelo)
+```
+
+
 ## Analise os resıduos. Existem problemas?
+
+
+
 
 ## Com base em uma análise dos efeitos principais e gráfico de interação, quais nıveis dos fatores A, B e C vocˆe recomendaria usar?

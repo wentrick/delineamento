@@ -1,4 +1,4 @@
-pacman::p_load(tidyverse,dplyr,tidyr)
+pacman::p_load(tidyverse,dplyr,tidyr,car)
 #montando o dataframe
 
 # Vetores com os fatores
@@ -142,4 +142,40 @@ lm(values ~ A*B*C,data = dados_padronizado)
 
 
 interaction.plot(dados_padronizado$A,dados_padronizado$C,response = dados_padronizado$values)
+
+#reisudos e pressupostos
+
+#normalidade
+residuo <- modelo$residuals
+qqnorm(residuo)
+qqline(residuo)
+
+shapiro.test(residuo)
+
+#independencia
+
+plot(residuo)
+
+#homocedasticidade
+
+dados_padronizado = dados_padronizado %>%
+  mutate(A = as.factor(A),
+         B = as.factor(B),
+         C = as.factor(C))
+  
+
+leveneTest(values ~ A,data = dados_padronizado)
+leveneTest(values ~ B)
+leveneTest(values ~ C)
+leveneTest(values ~ A:B)
+leveneTest(values ~ A:C)
+leveneTest(values ~ B:C)
+leveneTest(values ~ A:B:C)
+
+
+
+
+
+
+
 
