@@ -1,4 +1,4 @@
-pacman::p_load(tidyverse,dplyr,tidyr)
+pacman::p_load(tidyverse,dplyr,tidyr,car)
 #montando o dataframe
 
 # Vetores com os fatores
@@ -48,7 +48,7 @@ AB = contrasteAB/(4*n)
 
 AC = contrasteAC/(4*n)
 
-BC = contrasteABC/(4*n)
+BC = contrasteBC/(4*n)
 
 ABC = contrasteABC/(4*n)
 
@@ -134,6 +134,27 @@ anova_table
 modelo = aov(values ~ A*B*C, data = dados_padronizado)
 summary(modelo)
 
+#pressupostos
 
+residuo = modelo$residuals
+#normalidade
+qqnorm(residuo)
+qqline(residuo)
 
+shapiro.test(residuo)
+
+#independencia
+
+plot(residuo)
+
+#homocedasticidade
+
+leveneTest(values ~ A ,data = dados_padronizado)
+leveneTest(values ~ B ,data = dados_padronizado)
+leveneTest(values ~ C ,data = dados_padronizado)
+
+leveneTest(values ~ A:B ,data = dados_padronizado)
+leveneTest(values ~ A:C ,data = dados_padronizado)
+leveneTest(values ~ B:C ,data = dados_padronizado)
+leveneTest(values ~ A:B:C ,data = dados_padronizado)
 

@@ -5,9 +5,9 @@ date: "2023-07-11"
 output: 
   rmdformats::downcute:
     self_contained: true
-    thumbnails: true
-    lightbox: true
-    gallery: true
+    thumbnails: false
+    lightbox: false
+    gallery: false
     highlight: tango
     toc_depth : 4
   html_document:
@@ -18,8 +18,36 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pacman::p_load(tidyverse,dplyr,tidyr)
+pacman::p_load(tidyverse,dplyr,tidyr,car)
 ```
+
+# Experimento $2^3$
+
+## Modelo utilizado
+
+$$
+Y_{ijk} = \mu + \tau_i + \beta_j + \theta_k + (\tau\beta)_{ij} + (\tau\theta)_{ik}  + (\beta\theta)_{jk} + (\tau\beta\theta)_{ijk} + \epsilon_{ijk}
+$$
+onde:
+
++ $\mu$ é a média
+
++ $\tau_i$ é o efeito do i-ésimo nivel do fator A
+
++ $\beta_j$ é o efeito do j-ésimo nivel do fator B
+
++ $\theta_k$ é o efeito do k-ésimo nivel do fator C
+
++ $(\tau\beta)_{ij}$ é o efeito da interacao entre A e B
+
++ $(\tau\theta)_{ik}$ é o efeito da interacao entre A e C
+
++ $(\beta\theta)_{jk}$ é o efeito da interacao entre B e C
+
++ $(\tau\beta\theta)_{ijk}$ é o efeito da interacao entre A, B e C
+
++ $\epsilon_{ijk}$ é o componente do erro aletorio
+
 
 ## Montando o banco de dados para analise
 
@@ -79,7 +107,7 @@ AB = contrasteAB/(4*n)
 
 AC = contrasteAC/(4*n)
 
-BC = contrasteABC/(4*n)
+BC = contrasteBC/(4*n)
 
 ABC = contrasteABC/(4*n)
 ```
@@ -222,6 +250,52 @@ modelo = aov(values ~ A*B*C, data = dados_padronizado)
 summary(modelo)
 ```
 
+## Pressupostos
+
+### Normalidade
+```{r}
+residuo = modelo$residuals
+#normalidade
+qqnorm(residuo)
+qqline(residuo)
+
+shapiro.test(residuo)
+```
+
+### Independencia
+```{r}
+#independencia
+
+plot(residuo)
+```
+
+### Homocedasticidade
+```{r}
+#homocedasticidade
+
+leveneTest(values ~ A ,data = dados_padronizado)
+```
+Pelo teste de Levene com 5% de significância, rejeita-se h0. Logo, variâncias não são iguais em relacao ao fator A.
+
+```{r}
+leveneTest(values ~ B ,data = dados_padronizado)
+```
+
+
+```{r}
+leveneTest(values ~ C ,data = dados_padronizado)
+```
+Pelo teste de Levene com 5% de significância, rejeita-se h0. Logo, variâncias não são iguais em relacao ao fator C.
+
+
+Vamos testar em relacao as interacoes entre os fatores
+```{r}
+leveneTest(values ~ A:B ,data = dados_padronizado)
+leveneTest(values ~ A:C ,data = dados_padronizado)
+leveneTest(values ~ B:C ,data = dados_padronizado)
+leveneTest(values ~ A:B:C ,data = dados_padronizado)
+```
+Pelo teste de Levene com 5% de significância, rejeita-se h0 em todas as interacoes entre os fatores. Logo, variâncias não são iguais.
 
 ## Interprete os resultados encontrados nos itens anteriores.
 
